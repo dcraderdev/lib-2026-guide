@@ -121,53 +121,92 @@ const PACKING = {
   ]
 };
 
+// Slot types drive the color bar on the left of each itinerary row.
+const SLOT_TYPES = {
+  rest:      { color: "#c9b596", label: "Camp" },
+  food:      { color: "#eab77a", label: "Food" },
+  wellness:  { color: "#5eead4", label: "Temple" },
+  art:       { color: "#c9a0dc", label: "Art" },
+  lake:      { color: "#60a5fa", label: "Lake" },
+  music:     { color: "#ff6b9d", label: "Music" },
+  headliner: { color: "#ffc56b", label: "Headliner" },
+  outfit:    { color: "#fdf4e3", label: "Outfit" },
+  travel:    { color: "#94a3b8", label: "Travel" },
+};
+
 const ITINERARY = [
   {
-    day: "Friday · May 22",
-    color: C.gold,
-    schedule: [
-      { time: "7:00 AM", act: "Leave San Diego", note: "Beat the afternoon heat & gate traffic. ~3.5 hr drive. Fill gas before Bakersfield." },
-      { time: "10:30 AM", act: "Arrive & Set Up Camp", note: "Get there early for a prime campsite. Stake everything down — wind picks up." },
-      { time: "12–2 PM", act: "Explore the Grounds", note: "Walk every stage, find bathrooms, locate water fill stations, orient yourselves." },
-      { time: "2–4 PM", act: "Rest / Lake Time", note: "Swim or relax before the night. Bring floaties. You'll need the energy reset." },
-      { time: "4–6 PM", act: "Early Afternoon Sets", note: "Explore Woogie & Stacks for warm-up acts. Low crowd, great vibes." },
-      { time: "6–7 PM", act: "Get Dressed / Eat", note: "Back to camp. Eat a real meal. Layer up — it cools fast after sunset." },
-      { time: "7–9 PM", act: "Barry Can't Swim / Jayda G", note: "Start the night with feel-good house. Woogie stage for maximum crowd joy." },
-      { time: "9–11 PM", act: "TOKiMONSTA / Nia Archives", note: "Build up the night with melodic beats before the headliners hit." },
-      { time: "11 PM–2 AM", act: "Chase & Status or Zeds Dead", note: "HEADLINER BLOCK. Pick one and commit. Thunder or Lightning." },
-      { time: "2–5 AM", act: "Junkyard / Desert Hearts", note: "The Junkyard comes alive at 2am. Desert Hearts marathon sets are legendary." },
-    ]
+    day: "Friday",
+    date: "May 22",
+    color: "#ffc56b",
+    vibe: "Arrival + first night",
+    slots: [
+      { time: "7:30 AM",  temp: "60°F", type: "rest",      title: "Wake at Buttonwillow Walmart", where: "Pre-camp",       note: "You already did the drive last night. Brush teeth, sunscreen, go." },
+      { time: "8:00 AM",  temp: "63°F", type: "food",      title: "Coffee + breakfast sandwich",  where: "Flying J",       note: "Last real coffee for three days. Hydrate with water AND electrolytes." },
+      { time: "9:30 AM",  temp: "70°F", type: "travel",    title: "Drive to LIB gates",           where: "20 min",         note: "Beat the afternoon arrival wave." },
+      { time: "10:00 AM", temp: "72°F", type: "travel",    title: "Gates open — first wave in",   where: "Main entry",     note: "Prime campsite = reward for Thursday effort. Get a shady-ish spot." },
+      { time: "11:00 AM", temp: "75°F", type: "rest",      title: "Tailgate tent setup",          where: "Camp",           note: "Canopy, sandbag the legs, tapestries, fairy lights. Car + tent = your world." },
+      { time: "12:30 PM", temp: "82°F", type: "food",      title: "Cold lunch at camp",           where: "Camp",           note: "Wraps, fruit, electrolytes. Eat in shade." },
+      { time: "1:30 PM",  temp: "83°F", type: "art",       title: "Walk the grounds, orient",     where: "All stages",     note: "Find bathrooms, water fill stations, note walk times from camp to each stage." },
+      { time: "3:00 PM",  temp: "85°F", type: "lake",      title: "Lake float + cool off",        where: "Buena Vista Lake", note: "Bring floaties. Best reset of the day." },
+      { time: "4:30 PM",  temp: "85°F", type: "music",     title: "Early warm-up sets",           where: "Woogie Stage",   note: "Woogie runs feel-good house all afternoon. Low crowd, great vibes." },
+      { time: "6:00 PM",  temp: "82°F", type: "rest",      title: "Back to camp · recharge",      where: "Camp",           note: "Nap 20 min if you need it. Hydrate HARD for the night." },
+      { time: "6:30 PM",  temp: "81°F", type: "outfit",    title: "Sunset outfit change",         where: "Camp",           note: "Your golden-hour look. Sun sets at 7:52 PM — don't miss it." },
+      { time: "7:00 PM",  temp: "80°F", type: "music",     title: "Barry Can't Swim",             where: "Woogie · likely 7–9 PM", note: "UK jazz-house, perfect LIB vibe. Bring her out here for the first real moment." },
+      { time: "8:30 PM",  temp: "74°F", type: "food",      title: "Marketplace food run",         where: "Marketplace",    note: "Walk the vendor strip. Eat a real meal before late night." },
+      { time: "9:00 PM",  temp: "72°F", type: "outfit",    title: "Night layer on",               where: "Camp stop",      note: "Grab your sherpa/fleece. It's dropping to 60°F by 3 AM." },
+      { time: "9:30 PM",  temp: "70°F", type: "music",     title: "TOKiMONSTA / Nia Archives",    where: "Lightning / Thunder", note: "Build the night. TOKi is LIB native, Nia Archives is a rising force." },
+      { time: "11:00 PM", temp: "67°F", type: "headliner", title: "Chase & Status OR Zeds Dead",  where: "Lightning / Thunder", note: "Headliner block. Pick ONE and commit — they're parallel. C&S = DnB energy, Zeds Dead = bass crowd." },
+      { time: "1:00 AM",  temp: "64°F", type: "music",     title: "Junkyard late-night",          where: "Junkyard",       note: "Junkyard becomes its own world after 1 AM. Interactive art, weird sets, magic." },
+      { time: "3:00 AM",  temp: "60°F", type: "rest",      title: "Crash in the car",             where: "Camp",           note: "3 AM is the wall. Go to bed, Saturday is the big day." },
+    ],
   },
   {
-    day: "Saturday · May 23",
-    color: C.rose,
-    schedule: [
-      { time: "8–10 AM", act: "Morning Recovery", note: "Sleep in or catch an early sunrise ambient set at The Compass." },
-      { time: "10 AM–12 PM", act: "Workshops & Wellness", note: "LIB's talks and yoga sessions are genuinely special. Check the schedule in the app." },
-      { time: "12–2 PM", act: "Mochakk", note: "Afro-house afternoon — this man will make your soul smile. Perfect daytime energy." },
-      { time: "2–4 PM", act: "Of The Trees / Daily Bread", note: "Deeper bass vibes mid-afternoon. Grand Artique or Stacks stage." },
-      { time: "4–6 PM", act: "Overmono", note: "Priority set. Welsh experimental electronic duo — you won't hear this anywhere else." },
-      { time: "6–7 PM", act: "Camp / Eat / Recharge", note: "Critical break. Eat, hydrate, change. Dust mask on for the night ahead." },
-      { time: "7–9 PM", act: "Avalon Emerson", note: "Ethereal, hypnotic sets. Grand Artique is its own world — explore the art here too." },
-      { time: "9–11 PM", act: "Mau P", note: "Hard house god. The crowd will lose their minds. Peak energy set of the weekend." },
-      { time: "11 PM–2 AM", act: "Sara Landry", note: "Industrial techno headliner — dark, relentless, transformative." },
-      { time: "2–5 AM", act: "Maceo Plex sunrise", note: "If you can stay up — deep techno into dawn is a spiritual experience at LIB." },
-    ]
+    day: "Saturday",
+    date: "May 23",
+    color: "#ff6b9d",
+    vibe: "The biggest day · peak lineup",
+    slots: [
+      { time: "8:00 AM",  temp: "63°F", type: "rest",      title: "Slow wake + coffee",           where: "Camp",           note: "Don't rush. You have until noon before things heat up." },
+      { time: "9:00 AM",  temp: "67°F", type: "wellness",  title: "Vinyasa yoga",                 where: "Lucent Temple",  note: "LIB's signature wellness space. Sets the tone for the whole day. 45 min." },
+      { time: "10:30 AM", temp: "73°F", type: "wellness",  title: "Talk or workshop",             where: "The Compass",    note: "150+ talks across the weekend — pick ONE that excites you. Consciousness, sustainability, visionary art." },
+      { time: "12:00 PM", temp: "81°F", type: "music",     title: "Mochakk",                      where: "Woogie · likely 12–2 PM", note: "Afro-house maestro. Crowd mover. Pure daytime joy — this man will make her soul smile." },
+      { time: "1:30 PM",  temp: "83°F", type: "food",      title: "Marketplace lunch",            where: "Marketplace",    note: "Real food. Sit in shade. Refill water." },
+      { time: "2:30 PM",  temp: "85°F", type: "music",     title: "Of The Trees / Daily Bread",   where: "Grand Artique / Stacks", note: "Deep melodic bass mid-afternoon. Grand Artique is an immersive old-west world — explore it." },
+      { time: "4:00 PM",  temp: "86°F", type: "lake",      title: "Lake break — mandatory",       where: "Buena Vista Lake", note: "Peak heat. Get wet. Reset your core temp." },
+      { time: "5:00 PM",  temp: "84°F", type: "rest",      title: "Camp · eat · recharge",        where: "Camp",           note: "The critical break before the Saturday gauntlet. Eat carbs, hydrate, rest 30 min." },
+      { time: "6:00 PM",  temp: "82°F", type: "outfit",    title: "Sunset outfit change",         where: "Camp",           note: "Her best sunset look of the weekend — Saturday is THE day for photos." },
+      { time: "6:30 PM",  temp: "81°F", type: "music",     title: "Avalon Emerson",               where: "Grand Artique · likely 6:30–8 PM", note: "Ethereal, cinematic techno at golden hour inside the Grand Artique world. Don't skip." },
+      { time: "8:00 PM",  temp: "74°F", type: "outfit",    title: "Warm layer + quick camp stop", where: "Camp",           note: "It's about to drop fast. Grab her sherpa, grab yours, hit it." },
+      { time: "9:00 PM",  temp: "71°F", type: "music",     title: "Overmono",                     where: "Thunder · likely 9–10:30 PM", note: "Welsh experimental duo. Hypnotic, rare, unforgettable. Priority set." },
+      { time: "10:30 PM", temp: "68°F", type: "music",     title: "Mau P — PEAK ENERGY",          where: "Thunder · likely 10:30 PM–12 AM", note: "Hard house god. The crowd will lose its mind. This is THE peak energy moment of the weekend." },
+      { time: "12:00 AM", temp: "65°F", type: "headliner", title: "Sara Landry — HEADLINER",      where: "Lightning · likely 12–1:30 AM", note: "Industrial techno headliner. Dark, relentless, transformative. One of the best sets of 2026." },
+      { time: "2:00 AM",  temp: "63°F", type: "music",     title: "Junkyard late-night wander",   where: "Junkyard",       note: "Interactive art, weird DJs, fire performers. Peak LIB magic hours." },
+      { time: "4:30 AM",  temp: "59°F", type: "music",     title: "Maceo Plex sunrise (optional)", where: "Stacks · likely 4:30–6 AM", note: "If you can hang — deep techno into dawn is a spiritual experience. Coldest point of the day, full bundle." },
+      { time: "6:00 AM",  temp: "58°F", type: "rest",      title: "Crash hard",                   where: "Camp",           note: "Sunday is lighter. You earned it." },
+    ],
   },
   {
-    day: "Sunday · May 24",
-    color: C.lavender,
-    schedule: [
-      { time: "9–11 AM", act: "Lake Morning / Float", note: "Final morning at the lake. Easy pace, soak it all in." },
-      { time: "11 AM–1 PM", act: "Art Installations", note: "Sunday is the best day for exploring art — shorter lines, reflective crowd energy." },
-      { time: "1–3 PM", act: "Tinashe", note: "Only live act on the main bill. R&B pop energy is a vibe shift — absolutely go." },
-      { time: "3–5 PM", act: "Hot Since 82 / Lee Burridge", note: "Deep house legends for the Sunday stretch. Beautiful closer energy." },
-      { time: "5–7 PM", act: "Empire of the Sun", note: "THE FINALE. 'Walking on a Dream' at golden hour will wreck you (in the best way)." },
-      { time: "7–8 PM", act: "Break Camp / Pack Up", note: "Start packing now — don't wait until dark. Lots of traffic leaving Sunday night." },
-      { time: "8–9 PM", act: "One Last Set (optional)", note: "If you haven't seen your bucket list act yet, now's the time." },
-      { time: "9–10 PM", act: "Leave for San Diego", note: "~3.5 hr drive home. Stop in Bakersfield for gas + food." },
-    ]
-  }
+    day: "Sunday",
+    date: "May 24",
+    color: "#c9a0dc",
+    vibe: "Closer day · Empire at golden hour",
+    slots: [
+      { time: "9:00 AM",  temp: "65°F", type: "rest",      title: "Wake slow",                    where: "Camp",           note: "Sunday = recovery + reflection. No rush." },
+      { time: "9:30 AM",  temp: "67°F", type: "wellness",  title: "Gentle yoga or breathwork",    where: "Lucent Temple",  note: "Reset the body for the closer. Sunday sessions are often slower + deeper." },
+      { time: "11:00 AM", temp: "76°F", type: "lake",      title: "Final lake float",             where: "Buena Vista Lake", note: "Bring the inflatable. This is the last one — make it count." },
+      { time: "12:30 PM", temp: "81°F", type: "food",      title: "Marketplace brunch",           where: "Marketplace",    note: "Eat the most expensive thing. You're leaving tomorrow — no leftovers." },
+      { time: "1:30 PM",  temp: "83°F", type: "music",     title: "Tinashe — only live act",      where: "Lightning · likely 1:30–3 PM", note: "R&B pop energy is a vibe shift from the electronic mass. Absolutely go, even if she's not your genre." },
+      { time: "3:00 PM",  temp: "84°F", type: "art",       title: "Art installations walk",       where: "All grounds",    note: "Sunday has the shortest lines + most reflective crowd. Take photos. LIB's art is world-class." },
+      { time: "4:00 PM",  temp: "84°F", type: "music",     title: "Hot Since 82 / Lee Burridge",  where: "Woogie · likely 4–6 PM", note: "Deep house legends. Emotional, beautiful. Perfect Sunday afternoon stretch." },
+      { time: "5:30 PM",  temp: "83°F", type: "outfit",    title: "BEST sunset outfit",           where: "Camp",           note: "Your closer look. Empire of the Sun at golden hour = the entire weekend peaks here." },
+      { time: "6:30 PM",  temp: "80°F", type: "headliner", title: "Empire of the Sun — FINALE",   where: "Lightning · likely 6:30–8:30 PM", note: "Theatrical live spectacle. 'Walking on a Dream' at golden hour will wreck you. The whole trip is for this moment." },
+      { time: "8:30 PM",  temp: "72°F", type: "outfit",    title: "Change to driving clothes",    where: "Camp",           note: "Warm comfy layers. The drive home starts soon." },
+      { time: "9:00 PM",  temp: "70°F", type: "rest",      title: "Break down camp",              where: "Camp",           note: "Pack what you can now. Don't wait until midnight." },
+      { time: "10:00 PM", temp: "66°F", type: "travel",    title: "Leave for San Diego",          where: "On I-5 S",       note: "~3.5 hr drive. Gas + coffee at Buttonwillow on the way out." },
+      { time: "1:30 AM",  temp: "—",    type: "travel",    title: "Home",                         where: "San Diego",      note: "She'll be asleep by Grapevine. You got this. Welcome back." },
+    ],
+  },
 ];
 
 const TRAVEL = [
@@ -459,7 +498,7 @@ export default function LibGuide() {
 
         {/* Tabs */}
         <div style={{
-          display: "flex", gap: 6, marginBottom: 24, overflowX: "auto",
+          display: "flex", gap: 8, marginBottom: 26, overflowX: "auto",
           paddingBottom: 6, scrollbarWidth: "none",
           WebkitOverflowScrolling: "touch",
           justifyContent: "center",
@@ -472,7 +511,7 @@ export default function LibGuide() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 style={{
-                  padding: "10px 18px",
+                  padding: "12px 20px",
                   borderRadius: 999,
                   border: active
                     ? "1.5px solid rgba(255,197,107,0.8)"
@@ -481,8 +520,8 @@ export default function LibGuide() {
                     ? "linear-gradient(135deg, #ff6b9d 0%, #ffc56b 100%)"
                     : "rgba(26,8,32,0.55)",
                   color: active ? C.plum : C.cream,
-                  fontSize: 13,
-                  fontWeight: 700,
+                  fontSize: 15,
+                  fontWeight: 800,
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   transition: "all 0.25s ease",
@@ -785,45 +824,108 @@ export default function LibGuide() {
               ))}
             </Card>
 
-            <TabNote>Based on known artists · adjust when set times drop</TabNote>
+            <Card style={{ marginBottom: 16, borderColor: "rgba(255,197,107,0.5)" }}>
+              <SectionLabel color={C.gold}>Set Times Release ~1 Week Out</SectionLabel>
+              <p style={{ color: C.cream, fontSize: 16, lineHeight: 1.65, margin: "10px 0 10px", fontWeight: 600 }}>
+                LIB drops the official schedule in the app about a week before the festival.
+                Until then, artists below are slotted in their <em>typical</em> LIB window
+                (headliner 11 PM–1 AM, peak 9–11 PM, afternoon 12–4 PM).
+                Update when the real times land.
+              </p>
+              <div style={{
+                display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8,
+              }}>
+                {Object.entries(SLOT_TYPES).map(([k, t]) => (
+                  <span key={k} style={{
+                    fontSize: 11, fontWeight: 800, color: C.plum,
+                    background: t.color, padding: "4px 11px", borderRadius: 999,
+                    textTransform: "uppercase", letterSpacing: 0.5,
+                  }}>{t.label}</span>
+                ))}
+              </div>
+            </Card>
+
             {ITINERARY.map((day, di) => (
-              <Card key={di} style={{ marginBottom: 16 }}>
-                <h3 style={{
-                  margin: "0 0 14px",
-                  fontFamily: FONT_HEADING,
-                  fontWeight: 400,
-                  fontSize: 24,
-                  color: day.color,
-                  lineHeight: 1.1,
-                }}>{day.day}</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  {day.schedule.map((slot, si) => (
-                    <div key={si} style={{
-                      display: "grid", gridTemplateColumns: "92px 1fr",
-                      gap: 14, paddingBottom: 12,
-                      borderBottom: si < day.schedule.length - 1 ? "1px dashed rgba(253,244,227,0.18)" : "none",
-                      paddingTop: si > 0 ? 12 : 0,
-                    }}>
-                      <div style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: day.color,
-                        letterSpacing: 0.3,
-                        paddingTop: 3,
-                      }}>{slot.time}</div>
-                      <div>
-                        <div style={{
-                          fontFamily: FONT_HEADING,
-                          fontSize: 16, fontWeight: 400, color: C.cream,
-                          lineHeight: 1.25,
-                        }}>{slot.act}</div>
-                        <div style={{
-                          fontSize: 13, color: C.creamDim, marginTop: 4,
-                          lineHeight: 1.55, fontWeight: 500,
-                        }}>{slot.note}</div>
+              <Card key={di} style={{
+                marginBottom: 18,
+                borderColor: `${day.color}55`,
+                borderLeft: `4px solid ${day.color}`,
+              }}>
+                {/* Day header */}
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  alignItems: "flex-end", flexWrap: "wrap", gap: 8,
+                  marginBottom: 16,
+                  paddingBottom: 14,
+                  borderBottom: `1px dashed ${day.color}40`,
+                }}>
+                  <div>
+                    <div style={{
+                      fontFamily: FONT_HEADING,
+                      fontSize: 34, color: day.color, lineHeight: 1,
+                    }}>{day.day}</div>
+                    <div style={{
+                      fontSize: 13, color: C.creamMute, fontWeight: 800,
+                      letterSpacing: 1.2, textTransform: "uppercase", marginTop: 5,
+                    }}>{day.date}</div>
+                  </div>
+                  <div style={{
+                    fontSize: 15, color: C.creamDim, fontWeight: 600,
+                    fontStyle: "italic", maxWidth: "60%", textAlign: "right",
+                  }}>{day.vibe}</div>
+                </div>
+
+                {/* Slots */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {day.slots.map((slot, si) => {
+                    const slotType = SLOT_TYPES[slot.type] || SLOT_TYPES.rest;
+                    return (
+                      <div key={si} style={{
+                        display: "grid",
+                        gridTemplateColumns: "82px 1fr",
+                        gap: 14,
+                        padding: "12px 14px",
+                        background: "rgba(0,0,0,0.28)",
+                        borderRadius: 12,
+                        borderLeft: `4px solid ${slotType.color}`,
+                      }}>
+                        <div>
+                          <div style={{
+                            fontSize: 15, fontWeight: 800,
+                            color: C.cream, lineHeight: 1.1,
+                          }}>{slot.time}</div>
+                          <div style={{
+                            fontSize: 14, fontWeight: 700,
+                            color: day.color, marginTop: 3, lineHeight: 1,
+                          }}>{slot.temp}</div>
+                          <div style={{
+                            fontSize: 10, fontWeight: 800, color: C.plum,
+                            background: slotType.color,
+                            padding: "3px 8px", borderRadius: 999,
+                            textTransform: "uppercase", letterSpacing: 0.5,
+                            marginTop: 7, display: "inline-block",
+                          }}>{slotType.label}</div>
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{
+                            fontFamily: FONT_HEADING,
+                            fontSize: 19, fontWeight: 400, color: C.cream,
+                            lineHeight: 1.2,
+                          }}>{slot.title}</div>
+                          {slot.where && (
+                            <div style={{
+                              fontSize: 13, color: slotType.color, marginTop: 4,
+                              fontWeight: 700, letterSpacing: 0.2,
+                            }}>{slot.where}</div>
+                          )}
+                          <div style={{
+                            fontSize: 15, color: C.creamDim, marginTop: 6,
+                            lineHeight: 1.55, fontWeight: 600,
+                          }}>{slot.note}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Card>
             ))}
@@ -881,8 +983,8 @@ function Card({ children, style = {} }) {
     <div style={{
       background: "linear-gradient(135deg, rgba(15,5,22,0.92) 0%, rgba(32,10,38,0.9) 100%)",
       border: "1px solid rgba(255,197,107,0.3)",
-      borderRadius: 20,
-      padding: "18px 20px",
+      borderRadius: 22,
+      padding: "22px 22px",
       backdropFilter: "blur(14px)",
       WebkitBackdropFilter: "blur(14px)",
       boxShadow: "0 12px 40px rgba(10, 4, 15, 0.5)",
@@ -897,7 +999,7 @@ function SectionLabel({ children, color = "#fdf4e3" }) {
   return (
     <div style={{
       fontFamily: FONT_HEADING,
-      fontSize: 20,
+      fontSize: 26,
       color,
       fontWeight: 400,
       lineHeight: 1.1,
@@ -918,49 +1020,49 @@ function DayCard({ day, onOpenPlan }) {
       {/* Header row */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-        flexWrap: "wrap", gap: 8, marginBottom: 4,
+        flexWrap: "wrap", gap: 10, marginBottom: 4,
       }}>
         <div>
           <div style={{
-            fontFamily: FONT_HEADING, fontSize: 28, color: day.color, lineHeight: 1,
+            fontFamily: FONT_HEADING, fontSize: 38, color: day.color, lineHeight: 1,
           }}>{day.label}</div>
           <div style={{
-            fontSize: 12, color: C.creamMute, fontWeight: 700,
-            letterSpacing: 1, textTransform: "uppercase", marginTop: 4,
+            fontSize: 14, color: C.creamMute, fontWeight: 800,
+            letterSpacing: 1.2, textTransform: "uppercase", marginTop: 6,
           }}>{day.date}</div>
         </div>
         <div style={{
-          fontSize: 13, color: C.creamDim, fontWeight: 600,
+          fontSize: 16, color: C.creamDim, fontWeight: 600,
           fontStyle: "italic", maxWidth: "60%", textAlign: "right",
         }}>{day.vibe}</div>
       </div>
 
       {/* Temperature curve */}
       <div style={{
-        marginTop: 14,
-        background: "rgba(0,0,0,0.25)",
-        borderRadius: 12,
-        padding: "12px 14px",
+        marginTop: 18,
+        background: "rgba(0,0,0,0.3)",
+        borderRadius: 14,
+        padding: "16px 18px",
       }}>
         <div style={{
-          fontSize: 10, color: C.creamMute, fontWeight: 800,
-          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8,
+          fontSize: 12, color: C.creamMute, fontWeight: 800,
+          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12,
         }}>Temp Through the Day</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {day.weather.map((w, i) => (
             <div key={i} style={{
               display: "grid",
-              gridTemplateColumns: "60px 60px 1fr",
-              gap: 10, alignItems: "baseline",
+              gridTemplateColumns: "72px 72px 1fr",
+              gap: 12, alignItems: "baseline",
             }}>
               <span style={{
-                fontSize: 12, color: C.creamDim, fontWeight: 700,
+                fontSize: 15, color: C.cream, fontWeight: 800,
               }}>{w.time}</span>
               <span style={{
-                fontFamily: FONT_HEADING, fontSize: 17, color: day.color, lineHeight: 1,
+                fontFamily: FONT_HEADING, fontSize: 22, color: day.color, lineHeight: 1,
               }}>{w.temp}</span>
               <span style={{
-                fontSize: 12, color: C.creamDim, fontWeight: 500, lineHeight: 1.4,
+                fontSize: 14, color: C.creamDim, fontWeight: 600, lineHeight: 1.45,
               }}>{w.note}</span>
             </div>
           ))}
@@ -969,34 +1071,34 @@ function DayCard({ day, onOpenPlan }) {
 
       {/* Outfit guidance */}
       <div style={{
-        marginTop: 12,
-        display: "flex", gap: 8, alignItems: "flex-start",
-        background: `${day.color}14`,
-        border: `1px solid ${day.color}30`,
-        borderRadius: 10,
-        padding: "10px 12px",
+        marginTop: 16,
+        display: "flex", gap: 10, alignItems: "flex-start",
+        background: `${day.color}18`,
+        border: `1px solid ${day.color}40`,
+        borderRadius: 12,
+        padding: "14px 16px",
       }}>
         <span style={{
-          fontSize: 10, color: day.color, fontWeight: 800,
+          fontSize: 12, color: day.color, fontWeight: 800,
           letterSpacing: 1, textTransform: "uppercase", whiteSpace: "nowrap",
-          paddingTop: 2,
+          paddingTop: 3,
         }}>Outfit</span>
         <span style={{
-          fontSize: 13, color: C.cream, fontWeight: 600, lineHeight: 1.5,
+          fontSize: 15, color: C.cream, fontWeight: 700, lineHeight: 1.5,
         }}>{day.outfitNote}</span>
       </div>
 
       {/* Artists */}
-      <div style={{ marginTop: 14 }}>
+      <div style={{ marginTop: 18 }}>
         <div style={{
-          fontSize: 10, color: C.creamMute, fontWeight: 800,
-          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8,
+          fontSize: 12, color: C.creamMute, fontWeight: 800,
+          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10,
         }}>Look Forward To</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {day.artists.map((a, i) => (
             <span key={i} style={{
-              fontSize: 12, padding: "5px 11px", borderRadius: 999,
-              background: "rgba(253,244,227,0.08)",
+              fontSize: 14, padding: "7px 13px", borderRadius: 999,
+              background: "rgba(253,244,227,0.09)",
               color: C.cream, fontWeight: 700,
               border: `1px solid ${day.color}50`,
             }}>{a}</span>
@@ -1008,12 +1110,12 @@ function DayCard({ day, onOpenPlan }) {
       <button
         onClick={onOpenPlan}
         style={{
-          marginTop: 14, width: "100%",
-          padding: "12px 16px", borderRadius: 12,
+          marginTop: 18, width: "100%",
+          padding: "15px 18px", borderRadius: 14,
           border: "none",
           background: `linear-gradient(135deg, ${day.color}, #fdf4e3)`,
           color: C.plum,
-          fontFamily: FONT_BODY, fontSize: 13, fontWeight: 800,
+          fontFamily: FONT_BODY, fontSize: 15, fontWeight: 800,
           letterSpacing: 0.5, textTransform: "uppercase",
           cursor: "pointer",
           boxShadow: `0 6px 20px ${day.color}40`,
