@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { HER_OUTFITS, HIS_LOOKS } from "./outfits.js";
 
-const TABS = ["Overview", "Artists", "Packing", "Outfits", "Itinerary", "Travel"];
+const TABS = ["Overview", "Artists", "Camp", "Packing", "Outfits", "Itinerary", "Travel"];
 
 // ——— Palette ———
 const C = {
@@ -27,6 +27,7 @@ const FONT_SCRIPT = "'Caveat', cursive";
 // ——— Shopping link helpers ———
 const amazonUrl = (q) => `https://www.amazon.com/s?k=${encodeURIComponent(q)}`;
 const sheinUrl = (q) => `https://us.shein.com/pdsearch/${encodeURIComponent(q)}/`;
+const freePeopleUrl = (q) => `https://www.freepeople.com/search?q=${encodeURIComponent(q)}`;
 
 const ARTISTS = [
   {
@@ -215,6 +216,101 @@ const TRAVEL = [
       "5 MPH speed limit enforced — don't move your car once parked (lose your spot)",
     ]
   }
+];
+
+const CAMP_SECTIONS = [
+  {
+    title: "Tailgate Tent Extension",
+    blurb: "Attach to the hatch to extend your car-mattress setup into a covered outdoor room. Dust shield + sun shade + privacy + somewhere to change. Non-negotiable at LIB.",
+    items: [
+      "napier backroadz suv tent",
+      "rightline gear suv tent",
+      "kingcamp suv tailgate awning",
+      "universal suv tailgate tent",
+      "kelty backroads shelter",
+    ],
+  },
+  {
+    title: "Car Sleep Gear",
+    blurb: "You have the mattress — these finish the sleep setup so bugs, dust, and light don't ruin you at 6 AM.",
+    items: [
+      "12v car mattress air pump",
+      "car window mesh bug screens magnetic",
+      "car privacy window sunshade curtains universal",
+      "reflective windshield sunshade xl",
+      "battery powered clip on fan usb",
+      "hatchback rear window mesh",
+      "memory foam mattress topper twin",
+    ],
+  },
+  {
+    title: "3-Day Cooler Gear",
+    blurb: "A standard cooler loses ~30% of ice per day at 90°F+. Here's how to stretch 3 days without running to Buttonwillow for a $9 bag of cubes.",
+    tips: [
+      "Pre-chill the cooler with a sacrifice bag of ice 24 hrs before packing",
+      "Block ice > cube ice — lasts 2–3× longer (grocery stores sell 10 lb blocks)",
+      "Freeze gallon water jugs at home — they double as ice AND turn into drinking water",
+      "Run a 2-cooler system: DRINKS (opens 50×/day) + FOOD (stays sealed)",
+      "Don't drain the melt water — cold water insulates remaining ice better than air",
+      "Park coolers in shade, drape a damp towel over them (evaporative cooling is free)",
+      "Dry ice on top, wrapped in paper, food below — can add 24+ hours. 5 lb slab is plenty",
+      "Avoid opening the food cooler before noon. Morning = colder air = less ice loss",
+    ],
+    items: [
+      "yeti tundra 65 cooler",
+      "rtic ultra light 52 cooler",
+      "orca 40 quart cooler",
+      "arctic ice alaskan series reusable pack",
+      "yeti ice 4lb pack",
+      "reflective cooler insulation cover",
+      "coleman xtreme marine cooler 70qt",
+      "cooler floating drink holder",
+    ],
+  },
+  {
+    title: "Camp Comfort",
+    blurb: "Dust survival, shade, and making your campsite feel like a home for 3 days.",
+    items: [
+      "10x10 canopy with sandbag weights",
+      "heavy duty rebar tent stakes",
+      "boho camping rug outdoor",
+      "inflatable air couch lounger",
+      "solar string fairy lights outdoor",
+      "portable propane camp stove 2 burner",
+      "rechargeable led camping lantern",
+      "collapsible water jug 5 gallon",
+      "camping tapestry wall hanging boho",
+      "folding camp table aluminum",
+    ],
+  },
+];
+
+const PRE_TRIP_PLANS = [
+  {
+    label: "Option A · Thursday Night Roll Out",
+    recommended: true,
+    color: "#5eead4",
+    schedule: [
+      { time: "6 PM Thu", act: "Load the car, grab dinner in SD", note: "Pack the car fully at home. Last real food for a while." },
+      { time: "8 PM Thu", act: "Leave San Diego", note: "Drive at night = zero gate traffic, zero heat, less crowded I-5. ~3.5 hrs." },
+      { time: "~11:30 PM Thu", act: "Arrive Buttonwillow Walmart", note: "1800 E Trask Pkwy — free overnight parking, 20 min from the festival, 24/7 bathroom, fuel/snacks. Everyone's cool with overnight car campers here." },
+      { time: "Sleep", act: "Crash in the car", note: "You're already set up. No tent to pitch in the dark. Windows cracked with bug mesh." },
+      { time: "7 AM Fri", act: "Coffee + drive to LIB gates", note: "Rolling in fresh, not after a 4-hour drive. Be at gate opening." },
+      { time: "10 AM Fri", act: "Gates open — first wave", note: "Prime campsite = worth the Thursday effort. You beat the 11 AM–4 PM rush." },
+    ],
+  },
+  {
+    label: "Option B · Friday Morning (Realistic)",
+    recommended: false,
+    color: "#ffc56b",
+    schedule: [
+      { time: "9 AM Fri", act: "Alarm (you'll snooze)", note: "Be honest — target 9, leave at 11. Plan accordingly." },
+      { time: "11 AM Fri", act: "Actually leave San Diego", note: "You're not a morning person and that's fine. Pre-loaded car helps." },
+      { time: "~2:30 PM Fri", act: "Arrive — peak gate traffic", note: "Expect an hour in line. Use it to hydrate, not rage." },
+      { time: "3:30–5 PM Fri", act: "Set up camp fast", note: "Later spots = farther walk to stages. Eat, dress, pivot to the festival." },
+      { time: "6 PM Fri", act: "You're finally free", note: "Day 1 is compressed — skip a mid-tier set to stay sane." },
+    ],
+  },
 ];
 
 const WEATHER = [
@@ -451,6 +547,70 @@ export default function LibGuide() {
           </div>
         )}
 
+        {/* CAMP */}
+        {activeTab === "Camp" && (
+          <div>
+            <Card style={{ marginBottom: 14, borderColor: "rgba(94,234,212,0.45)" }}>
+              <SectionLabel color={C.turquoise}>Car Camping Setup</SectionLabel>
+              <p style={{ color: C.cream, fontSize: 14, lineHeight: 1.65, margin: "10px 0 0", fontWeight: 600 }}>
+                You're car camping with a mattress setup, so your whole game is different from tent campers.
+                Your car IS the shelter — this section is about extending it, keeping food cold for 3 days, and not
+                getting cooked alive at 7 AM when the sun hits the windshield.
+              </p>
+            </Card>
+
+            {CAMP_SECTIONS.map((section, si) => (
+              <Card key={si} style={{ marginBottom: 14 }}>
+                <SectionLabel>{section.title}</SectionLabel>
+                <p style={{ color: C.creamDim, fontSize: 13.5, lineHeight: 1.6, margin: "8px 0 0", fontWeight: 600 }}>
+                  {section.blurb}
+                </p>
+
+                {section.tips && (
+                  <ul style={{
+                    color: C.cream, lineHeight: 1.75, margin: "12px 0 4px",
+                    paddingLeft: 22, fontSize: 13.5, fontWeight: 600,
+                  }}>
+                    {section.tips.map((tip, ti) => <li key={ti} style={{ marginBottom: 4 }}>{tip}</li>)}
+                  </ul>
+                )}
+
+                <div style={{
+                  marginTop: 12, display: "flex", flexDirection: "column", gap: 7,
+                }}>
+                  {section.items.map((item, ii) => (
+                    <div key={ii} style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      paddingBottom: 7,
+                      borderBottom: ii < section.items.length - 1 ? "1px dashed rgba(253,244,227,0.14)" : "none",
+                      flexWrap: "wrap",
+                    }}>
+                      <span style={{
+                        fontSize: 13.5, color: C.cream, fontWeight: 600,
+                        flex: "1 1 200px", lineHeight: 1.4,
+                      }}>{item}</span>
+                      <ShopLink href={amazonUrl(item)} label="Amazon" color={C.gold} />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))}
+
+            <Card style={{ borderColor: "rgba(255,107,157,0.5)" }}>
+              <SectionLabel color={C.rose}>Ice Run Locations Near the Venue</SectionLabel>
+              <p style={{ color: C.cream, fontSize: 14, lineHeight: 1.65, margin: "10px 0 0", fontWeight: 600 }}>
+                If you blow through your ice, these are your closest options (~15–25 min from the venue):
+              </p>
+              <ul style={{ color: C.cream, lineHeight: 1.85, marginTop: 8, paddingLeft: 22, fontSize: 14, fontWeight: 600 }}>
+                <li>Buttonwillow Flying J / Love's (fastest, bag ice)</li>
+                <li>Buttonwillow Walmart Supercenter (cheapest, block + cube)</li>
+                <li>Tupman Country Store (closest actual store to venue)</li>
+                <li>Dry ice: call Bakersfield-area Smart &amp; Final or Ralph's — not every store stocks it</li>
+              </ul>
+            </Card>
+          </div>
+        )}
+
         {/* PACKING */}
         {activeTab === "Packing" && (
           <div>
@@ -564,6 +724,58 @@ export default function LibGuide() {
         {/* ITINERARY */}
         {activeTab === "Itinerary" && (
           <div>
+            <Card style={{ marginBottom: 16, borderColor: "rgba(94,234,212,0.5)" }}>
+              <SectionLabel color={C.turquoise}>The Pre-Trip Plan</SectionLabel>
+              <p style={{ color: C.cream, fontSize: 14, lineHeight: 1.65, margin: "10px 0 14px", fontWeight: 600 }}>
+                Two realistic options. Option A wins every time if you can pull it off — you'd lose the whole
+                Friday to driving + gate traffic otherwise.
+              </p>
+
+              {PRE_TRIP_PLANS.map((plan, pi) => (
+                <div key={pi} style={{
+                  marginBottom: pi < PRE_TRIP_PLANS.length - 1 ? 16 : 0,
+                  paddingBottom: pi < PRE_TRIP_PLANS.length - 1 ? 16 : 0,
+                  borderBottom: pi < PRE_TRIP_PLANS.length - 1 ? "1px dashed rgba(253,244,227,0.18)" : "none",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+                    <h4 style={{
+                      fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 400,
+                      color: plan.color, margin: 0, lineHeight: 1.15,
+                    }}>{plan.label}</h4>
+                    {plan.recommended && (
+                      <span style={{
+                        fontSize: 10, color: C.plum, fontWeight: 800, letterSpacing: 0.5,
+                        background: `linear-gradient(135deg, ${C.turquoise}, ${C.gold})`,
+                        padding: "3px 10px", borderRadius: 999, textTransform: "uppercase",
+                      }}>Recommended</span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {plan.schedule.map((slot, si) => (
+                      <div key={si} style={{
+                        display: "grid", gridTemplateColumns: "100px 1fr",
+                        gap: 12, paddingBottom: 10,
+                        borderBottom: si < plan.schedule.length - 1 ? "1px dashed rgba(253,244,227,0.12)" : "none",
+                        paddingTop: si > 0 ? 10 : 0,
+                      }}>
+                        <div style={{
+                          fontSize: 12, fontWeight: 800, color: plan.color, paddingTop: 3,
+                        }}>{slot.time}</div>
+                        <div>
+                          <div style={{
+                            fontFamily: FONT_HEADING, fontSize: 15, color: C.cream, lineHeight: 1.25,
+                          }}>{slot.act}</div>
+                          <div style={{
+                            fontSize: 13, color: C.creamDim, marginTop: 3, lineHeight: 1.55, fontWeight: 600,
+                          }}>{slot.note}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </Card>
+
             <TabNote>Based on known artists · adjust when set times drop</TabNote>
             {ITINERARY.map((day, di) => (
               <Card key={di} style={{ marginBottom: 16 }}>
@@ -783,7 +995,8 @@ function OutfitCard({ outfit, compact = false }) {
               fontSize: 13.5, color: C.cream, fontWeight: 500,
               flex: "1 1 180px", lineHeight: 1.4,
             }}>{item}</span>
-            <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 5, flexShrink: 0, flexWrap: "wrap" }}>
+              <ShopLink href={freePeopleUrl(item)} label="Free People" color={C.lavender} />
               <ShopLink href={amazonUrl(item)} label="Amazon" color={C.gold} />
               <ShopLink href={sheinUrl(item)} label="SHEIN" color={C.rose} />
             </div>
