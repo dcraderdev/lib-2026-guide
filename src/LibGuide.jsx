@@ -2,9 +2,24 @@ import { useState } from "react";
 
 const TABS = ["Overview", "Artists", "Packing", "Outfits", "Itinerary", "Travel"];
 
+// ——— Palette ———
+const C = {
+  cream: "#fdf4e3",
+  creamDim: "#f4e6c8",
+  creamMute: "#d9c4a8",
+  dust: "#b89a87",
+  rose: "#ff6b9d",
+  roseDeep: "#c94a77",
+  gold: "#ffc56b",
+  goldDeep: "#e09440",
+  lavender: "#c9a0dc",
+  turquoise: "#5eead4",
+  plum: "#1f0b2a",
+};
+
 const ARTISTS = [
   {
-    tier: "🔴 Must-See Headliners",
+    tier: "✹ Must-See Headliners",
     acts: [
       { name: "Empire of the Sun", why: "Theatrical live spectacle — legendary set design, expect 'Walking on a Dream'. Pure magic at night.", stage: "Lightning" },
       { name: "Mau P", why: "Peak hard house energy, 'Drugs from Amsterdam' will go off. Best late-night pick.", stage: "Thunder" },
@@ -14,7 +29,7 @@ const ARTISTS = [
     ]
   },
   {
-    tier: "🟠 High Priority",
+    tier: "✿ High Priority",
     acts: [
       { name: "Overmono", why: "Welsh duo blending rave and experimental electronics. Hypnotic and unique.", stage: "Thunder" },
       { name: "Mochakk", why: "Brazilian afro-house maestro. Guaranteed crowd mover — feel-good and deep.", stage: "Woogie" },
@@ -25,7 +40,7 @@ const ARTISTS = [
     ]
   },
   {
-    tier: "🟡 Hidden Gems",
+    tier: "🍄 Hidden Gems",
     acts: [
       { name: "Daily Bread", why: "Bass meets soul — melodic, emotive, beautiful at night.", stage: "Stacks" },
       { name: "Of The Trees", why: "Deep bass/ambient blend. Perfect mid-afternoon trip.", stage: "Grand Artique" },
@@ -142,7 +157,7 @@ const ITINERARY = [
   {
     day: "Friday, May 22",
     emoji: "⚡",
-    color: "#f9a825",
+    color: C.gold,
     schedule: [
       { time: "7:00 AM", act: "Leave San Diego 🚗", note: "Beat the afternoon heat & gate traffic. ~3.5 hr drive. Fill gas before Bakersfield." },
       { time: "10:30 AM", act: "Arrive & Set Up Camp", note: "Get there early for a prime campsite spot. Stake everything down — wind picks up." },
@@ -159,7 +174,7 @@ const ITINERARY = [
   {
     day: "Saturday, May 23",
     emoji: "🔥",
-    color: "#e53935",
+    color: C.rose,
     schedule: [
       { time: "8–10 AM", act: "Morning Recovery", note: "Sleep in or catch an early sunrise ambient set at The Compass." },
       { time: "10 AM–12 PM", act: "Workshops & Wellness", note: "LIB's talks and yoga sessions are genuinely special. Check the schedule in the app." },
@@ -176,7 +191,7 @@ const ITINERARY = [
   {
     day: "Sunday, May 24",
     emoji: "🌅",
-    color: "#7b1fa2",
+    color: C.lavender,
     schedule: [
       { time: "9–11 AM", act: "Lake morning / Float", note: "Final morning at the lake. Easy pace, soak it all in." },
       { time: "11 AM–1 PM", act: "Wander & Art Installations", note: "Sunday is the best day for exploring art — shorter lines, reflective crowd energy." },
@@ -248,106 +263,148 @@ export default function LibGuide() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #0a0012 0%, #0d001a 40%, #001020 100%)",
-      fontFamily: "'Courier New', monospace",
-      color: "#e8e0ff",
+      background:
+        "radial-gradient(ellipse at 75% 0%, #f4a87c 0%, transparent 45%)," +
+        "radial-gradient(ellipse at 15% 100%, #7d3a86 0%, transparent 55%)," +
+        "linear-gradient(180deg, #1a0820 0%, #3d1440 18%, #6b1f47 42%, #a33958 62%, #d46b4a 82%, #eab77a 100%)",
+      color: C.cream,
       position: "relative",
       overflow: "hidden",
     }}>
-      {/* Starfield background */}
+      {/* Soft sun orb */}
       <div style={{
-        position: "fixed", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse at 20% 20%, rgba(120,0,255,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(0,180,255,0.06) 0%, transparent 60%)",
-        zIndex: 0
+        position: "fixed", top: "-120px", right: "-120px", width: 480, height: 480,
+        borderRadius: "50%", pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(circle, rgba(255,214,150,0.55) 0%, rgba(255,140,90,0.25) 35%, transparent 70%)",
+        filter: "blur(30px)",
+      }} />
+      {/* Soft moon orb */}
+      <div style={{
+        position: "fixed", bottom: "-160px", left: "-140px", width: 520, height: 520,
+        borderRadius: "50%", pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(circle, rgba(201,160,220,0.35) 0%, rgba(125,58,134,0.2) 40%, transparent 70%)",
+        filter: "blur(40px)",
       }} />
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 780, margin: "0 auto", padding: "24px 16px 60px" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 780, margin: "0 auto", padding: "28px 18px 80px" }}>
 
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
           <div style={{
-            fontSize: 11, letterSpacing: 6, color: "#a78bfa", marginBottom: 8,
-            textTransform: "uppercase"
-          }}>MAY 20–24 · BUENA VISTA LAKE, CA</div>
+            fontFamily: "'Caveat', cursive",
+            fontSize: 22, color: C.gold, marginBottom: 4,
+            transform: "rotate(-2deg)",
+          }}>
+            ✿ may 20–24 · buena vista lake ✿
+          </div>
           <h1 style={{
-            fontSize: "clamp(2.2rem, 8vw, 3.8rem)",
-            fontFamily: "'Georgia', serif",
-            fontStyle: "italic",
-            fontWeight: 900,
-            margin: 0,
-            background: "linear-gradient(135deg, #ffffff 0%, #c4b5fd 40%, #60a5fa 100%)",
+            fontFamily: "'Bagel Fat One', cursive",
+            fontSize: "clamp(2.8rem, 11vw, 5.2rem)",
+            fontWeight: 400,
+            margin: "4px 0 0",
+            lineHeight: 0.95,
+            background: "linear-gradient(180deg, #fff1d0 0%, #ffc56b 35%, #ff8c5a 70%, #e94a7f 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            lineHeight: 1.1,
-            letterSpacing: "-1px"
+            backgroundClip: "text",
+            textShadow: "0 2px 30px rgba(255,140,90,0.25)",
+            letterSpacing: "-1px",
           }}>
-            Lightning in<br/>a Bottle '26
+            Lightning in<br/>a Bottle
           </h1>
           <div style={{
-            marginTop: 12, fontSize: 13, color: "#94a3b8", letterSpacing: 2
-          }}>YOUR FRIDAY–SUNDAY TRIP GUIDE ⚡</div>
+            fontFamily: "'DM Serif Display', serif",
+            fontStyle: "italic",
+            fontSize: 26,
+            color: C.cream,
+            marginTop: 2,
+            opacity: 0.85,
+          }}>
+            ~ 2026 ~
+          </div>
+          <div style={{
+            fontFamily: "'Caveat', cursive",
+            marginTop: 10, fontSize: 20, color: C.creamDim,
+          }}>
+            your friday–sunday trip guide ⚡
+          </div>
         </div>
 
         {/* Tabs */}
         <div style={{
-          display: "flex", gap: 4, marginBottom: 28, overflowX: "auto",
-          paddingBottom: 4, scrollbarWidth: "none"
+          display: "flex", gap: 6, marginBottom: 28, overflowX: "auto",
+          paddingBottom: 6, scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
         }}>
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: "8px 16px",
-                borderRadius: 6,
-                border: activeTab === tab ? "1px solid #7c3aed" : "1px solid rgba(255,255,255,0.1)",
-                background: activeTab === tab
-                  ? "linear-gradient(135deg, #7c3aed, #2563eb)"
-                  : "rgba(255,255,255,0.04)",
-                color: activeTab === tab ? "#fff" : "#94a3b8",
-                fontSize: 12, fontWeight: 700, letterSpacing: 1,
-                cursor: "pointer", whiteSpace: "nowrap",
-                transition: "all 0.2s",
-                textTransform: "uppercase",
-                fontFamily: "'Courier New', monospace",
-              }}
-            >
-              {tab}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            const active = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: 999,
+                  border: active
+                    ? "1.5px solid rgba(255,197,107,0.7)"
+                    : "1.5px solid rgba(253,244,227,0.22)",
+                  background: active
+                    ? "linear-gradient(135deg, #ff6b9d 0%, #ffc56b 100%)"
+                    : "rgba(253,244,227,0.08)",
+                  color: active ? C.plum : C.cream,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.25s ease",
+                  fontFamily: "'Quicksand', sans-serif",
+                  letterSpacing: 0.3,
+                  boxShadow: active
+                    ? "0 6px 24px rgba(255,107,157,0.35), 0 0 0 4px rgba(255,197,107,0.12)"
+                    : "none",
+                }}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
 
         {/* OVERVIEW */}
         {activeTab === "Overview" && (
           <div>
             <Card>
-              <SectionLabel>The Festival</SectionLabel>
-              <p style={{ color: "#cbd5e1", lineHeight: 1.8, margin: "8px 0 0" }}>
-                LIB is a transformational camping festival — not just a music event. It's 7 stages, a lake, immersive art, 
-                workshops, late-night hidden spaces, and a community unlike any other. <span style={{ color: "#c4b5fd" }}>You're going 
-                for Friday–Sunday (May 22–24)</span>, which is the heart of the weekend — the full headliner run, peak crowd energy, 
+              <SectionLabel>✿ The Festival</SectionLabel>
+              <p style={{ color: C.creamDim, lineHeight: 1.75, margin: "10px 0 0", fontSize: 15 }}>
+                LIB is a transformational camping festival — not just a music event. It's 7 stages, a lake, immersive art,
+                workshops, late-night hidden spaces, and a community unlike any other. <span style={{ color: C.gold, fontWeight: 600 }}>You're going
+                for Friday–Sunday (May 22–24)</span> — the heart of the weekend, the full headliner run, peak crowd energy,
                 and the legendary Sunday closer.
               </p>
             </Card>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}>
               <StatCard icon="⚡" label="Stages" value="7 worlds" />
-              <StatCard icon="🌡️" label="Daytime Temp" value="80–100°F" />
-              <StatCard icon="🌙" label="Night Temp" value="Can hit 45°F" />
-              <StatCard icon="🌪️" label="Terrain" value="Dusty + Flat" />
-              <StatCard icon="🚗" label="From San Diego" value="~3.5 hrs" />
-              <StatCard icon="🏊" label="Lake Access" value="Yes — swim!" />
+              <StatCard icon="🌡️" label="Daytime" value="80–100°F" />
+              <StatCard icon="🌙" label="Nights" value="Can hit 45°F" />
+              <StatCard icon="🌪️" label="Terrain" value="Dusty + flat" />
+              <StatCard icon="🚗" label="From SD" value="~3.5 hrs" />
+              <StatCard icon="🏊" label="The Lake" value="Swim time!" />
             </div>
 
-            <Card style={{ marginTop: 12, borderColor: "rgba(249,168,37,0.3)", background: "rgba(249,168,37,0.05)" }}>
-              <SectionLabel color="#f9a825">⚠️ Critical Notes for First-Timers</SectionLabel>
-              <ul style={{ color: "#cbd5e1", lineHeight: 2, margin: "8px 0 0", paddingLeft: 20, fontSize: 13 }}>
+            <Card style={{
+              marginTop: 14,
+              borderColor: "rgba(255,197,107,0.4)",
+              background: "linear-gradient(135deg, rgba(255,197,107,0.12) 0%, rgba(255,107,157,0.08) 100%)",
+            }}>
+              <SectionLabel color={C.gold}>⚠ Critical Notes for First-Timers</SectionLabel>
+              <ul style={{ color: C.creamDim, lineHeight: 1.95, margin: "10px 0 0", paddingLeft: 22, fontSize: 14 }}>
                 <li>Gate hours are NOT 24/7 — if you leave after gates close, you can't return until morning</li>
                 <li>Temperatures swing 40–50°F from day to night — always carry a warm layer</li>
                 <li>Dust storms hit without warning — bring a mask every single day</li>
                 <li>Plan 2 gallons of water per person per day — seriously</li>
                 <li>Stake your tent AND shade structure down tight — wind is intense</li>
-                <li>Set times drop closer to the festival — download the LIB app now to get alerts</li>
+                <li>Set times drop closer to the festival — download the LIB app now for alerts</li>
               </ul>
             </Card>
           </div>
@@ -356,28 +413,38 @@ export default function LibGuide() {
         {/* ARTISTS */}
         {activeTab === "Artists" && (
           <div>
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16, letterSpacing: 1 }}>
-              SET TIMES NOT YET RELEASED · CHECK LIB APP FOR SCHEDULE
+            <div style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: 18, color: C.creamMute, marginBottom: 14,
+            }}>
+              ~ set times not yet released · check LIB app for schedule ~
             </div>
             {ARTISTS.map((group, i) => (
-              <Card key={i} style={{ marginBottom: 12 }}>
+              <Card key={i} style={{ marginBottom: 14 }}>
                 <SectionLabel>{group.tier}</SectionLabel>
-                <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
                   {group.acts.map((act, j) => (
                     <div key={j} style={{
-                      padding: "12px 14px",
-                      background: "rgba(255,255,255,0.03)",
-                      borderRadius: 8,
-                      borderLeft: "3px solid #7c3aed"
+                      padding: "13px 15px",
+                      background: "rgba(253,244,227,0.06)",
+                      borderRadius: 14,
+                      borderLeft: `3px solid ${C.rose}`,
+                      position: "relative",
                     }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <span style={{ fontWeight: 700, color: "#e2e8f0", fontSize: 14 }}>{act.name}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                         <span style={{
-                          fontSize: 10, color: "#7c3aed", background: "rgba(124,58,237,0.15)",
-                          padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8, letterSpacing: 1
+                          fontFamily: "'DM Serif Display', serif",
+                          fontWeight: 400, color: C.cream, fontSize: 18,
+                        }}>{act.name}</span>
+                        <span style={{
+                          fontSize: 11, color: C.plum,
+                          background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
+                          padding: "3px 11px", borderRadius: 999, whiteSpace: "nowrap",
+                          fontWeight: 700, letterSpacing: 0.5,
+                          boxShadow: "0 2px 8px rgba(255,107,157,0.25)",
                         }}>{act.stage}</span>
                       </div>
-                      <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 4, lineHeight: 1.6 }}>{act.why}</div>
+                      <div style={{ color: C.creamMute, fontSize: 13.5, marginTop: 5, lineHeight: 1.65 }}>{act.why}</div>
                     </div>
                   ))}
                 </div>
@@ -389,13 +456,16 @@ export default function LibGuide() {
         {/* PACKING */}
         {activeTab === "Packing" && (
           <div>
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16, letterSpacing: 1 }}>
-              TAP ITEMS TO CHECK OFF YOUR LIST
+            <div style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: 18, color: C.creamMute, marginBottom: 14,
+            }}>
+              ~ tap items to check off your list ~
             </div>
             {Object.entries(PACKING).map(([category, items], ci) => (
-              <Card key={ci} style={{ marginBottom: 12 }}>
+              <Card key={ci} style={{ marginBottom: 14 }}>
                 <SectionLabel>{category}</SectionLabel>
-                <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
                   {items.map((item, ii) => {
                     const key = `${ci}-${ii}`;
                     const checked = checkedItems[key];
@@ -404,24 +474,27 @@ export default function LibGuide() {
                         key={ii}
                         onClick={() => toggleCheck(key)}
                         style={{
-                          display: "flex", alignItems: "center", gap: 10,
-                          padding: "8px 10px", borderRadius: 6, cursor: "pointer",
-                          background: checked ? "rgba(124,58,237,0.12)" : "transparent",
-                          transition: "background 0.15s",
-                          opacity: checked ? 0.5 : 1,
+                          display: "flex", alignItems: "center", gap: 12,
+                          padding: "9px 12px", borderRadius: 10, cursor: "pointer",
+                          background: checked ? "rgba(255,197,107,0.14)" : "transparent",
+                          transition: "background 0.2s",
+                          opacity: checked ? 0.55 : 1,
                         }}
                       >
                         <div style={{
-                          width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                          border: checked ? "2px solid #7c3aed" : "2px solid rgba(255,255,255,0.2)",
-                          background: checked ? "#7c3aed" : "transparent",
-                          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10
+                          width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                          border: checked ? `2px solid ${C.gold}` : "2px solid rgba(253,244,227,0.3)",
+                          background: checked
+                            ? `linear-gradient(135deg, ${C.gold}, ${C.rose})`
+                            : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 11, color: C.plum, fontWeight: 900,
                         }}>
                           {checked && "✓"}
                         </div>
                         <span style={{
-                          fontSize: 13, color: "#cbd5e1",
-                          textDecoration: checked ? "line-through" : "none"
+                          fontSize: 14.5, color: C.creamDim,
+                          textDecoration: checked ? "line-through" : "none",
                         }}>{item}</span>
                       </div>
                     );
@@ -436,31 +509,42 @@ export default function LibGuide() {
         {activeTab === "Outfits" && (
           <div>
             {OUTFITS.map((outfit, i) => (
-              <Card key={i} style={{ marginBottom: 14 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Card key={i} style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                   <SectionLabel>{outfit.time}</SectionLabel>
                   <span style={{
-                    fontSize: 10, letterSpacing: 2, color: "#a78bfa",
-                    textTransform: "uppercase"
+                    fontFamily: "'Caveat', cursive",
+                    fontSize: 22, color: C.rose,
+                    transform: "rotate(-1deg)",
                   }}>{outfit.vibe}</span>
                 </div>
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 11, color: "#64748b", letterSpacing: 1, marginBottom: 6 }}>WEAR:</div>
+                  <div style={{
+                    fontSize: 11, color: C.creamMute, letterSpacing: 2,
+                    marginBottom: 8, textTransform: "uppercase", fontWeight: 700,
+                  }}>Wear</div>
                   {outfit.items.map((item, j) => (
                     <div key={j} style={{
-                      padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.05)",
-                      fontSize: 13, color: "#cbd5e1", display: "flex", gap: 8
+                      padding: "8px 0",
+                      borderBottom: "1px solid rgba(253,244,227,0.1)",
+                      fontSize: 14, color: C.creamDim, display: "flex", gap: 10,
                     }}>
-                      <span style={{ color: "#7c3aed" }}>›</span>{item}
+                      <span style={{ color: C.gold, fontSize: 16 }}>✿</span>{item}
                     </div>
                   ))}
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, color: "#64748b", letterSpacing: 1, marginBottom: 6 }}>BUY:</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{
+                      fontSize: 11, color: C.creamMute, letterSpacing: 2,
+                      marginBottom: 8, textTransform: "uppercase", fontWeight: 700,
+                    }}>Buy</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                       {outfit.buy.map((b, k) => (
                         <span key={k} style={{
-                          fontSize: 11, padding: "3px 10px", borderRadius: 20,
-                          background: "rgba(255,255,255,0.05)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)"
+                          fontSize: 12, padding: "5px 12px", borderRadius: 999,
+                          background: "rgba(253,244,227,0.08)",
+                          color: C.creamDim,
+                          border: "1px solid rgba(253,244,227,0.2)",
+                          fontWeight: 500,
                         }}>{b}</span>
                       ))}
                     </div>
@@ -468,11 +552,14 @@ export default function LibGuide() {
                 </div>
               </Card>
             ))}
-            <Card style={{ borderColor: "rgba(249,168,37,0.3)", background: "rgba(249,168,37,0.04)" }}>
-              <SectionLabel color="#f9a825">👟 Footwear Rule</SectionLabel>
-              <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.7, margin: "8px 0 0" }}>
-                Closed-toe only. The terrain is flat but dusty — open sandals will destroy your feet and fill with dust. 
-                Comfy sneakers for daytime (New Balance, Nike, Vans), then ankle boots or platforms for the night sets if you want style. 
+            <Card style={{
+              borderColor: "rgba(255,197,107,0.4)",
+              background: "linear-gradient(135deg, rgba(255,197,107,0.12) 0%, rgba(255,107,157,0.08) 100%)",
+            }}>
+              <SectionLabel color={C.gold}>👟 Footwear Rule</SectionLabel>
+              <p style={{ color: C.creamDim, fontSize: 14, lineHeight: 1.75, margin: "10px 0 0" }}>
+                Closed-toe only. The terrain is flat but dusty — open sandals will destroy your feet and fill with dust.
+                Comfy sneakers for daytime (New Balance, Nike, Vans), then ankle boots or platforms for the night sets if you want style.
                 Bring an extra pair — your shoes WILL get destroyed.
               </p>
             </Card>
@@ -482,34 +569,47 @@ export default function LibGuide() {
         {/* ITINERARY */}
         {activeTab === "Itinerary" && (
           <div>
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 16, letterSpacing: 1 }}>
-              BASED ON KNOWN ARTISTS · ADJUST WHEN SET TIMES DROP
+            <div style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: 18, color: C.creamMute, marginBottom: 14,
+            }}>
+              ~ based on known artists · adjust when set times drop ~
             </div>
             {ITINERARY.map((day, di) => (
               <Card key={di} style={{ marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                  <span style={{ fontSize: 20 }}>{day.emoji}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <span style={{ fontSize: 26 }}>{day.emoji}</span>
                   <h3 style={{
-                    margin: 0, fontSize: 15, fontWeight: 700,
-                    color: day.color, fontFamily: "'Georgia', serif", fontStyle: "italic"
+                    margin: 0,
+                    fontFamily: "'DM Serif Display', serif",
+                    fontStyle: "italic",
+                    fontWeight: 400,
+                    fontSize: 24,
+                    color: day.color,
                   }}>{day.day}</h3>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {day.schedule.map((slot, si) => (
                     <div key={si} style={{
-                      display: "grid", gridTemplateColumns: "80px 1fr",
-                      gap: 12, paddingBottom: 12, paddingTop: 0,
-                      borderBottom: si < day.schedule.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                      marginBottom: si < day.schedule.length - 1 ? 0 : 0,
-                      paddingTop: si > 0 ? 10 : 0
+                      display: "grid", gridTemplateColumns: "82px 1fr",
+                      gap: 14, paddingBottom: 12,
+                      borderBottom: si < day.schedule.length - 1 ? "1px dashed rgba(253,244,227,0.14)" : "none",
+                      paddingTop: si > 0 ? 12 : 0,
                     }}>
                       <div style={{
-                        fontSize: 11, color: "#64748b", paddingTop: 2,
-                        fontFamily: "'Courier New', monospace"
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: day.color,
+                        letterSpacing: 0.3,
+                        paddingTop: 3,
                       }}>{slot.time}</div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{slot.act}</div>
-                        <div style={{ fontSize: 12, color: "#64748b", marginTop: 2, lineHeight: 1.5 }}>{slot.note}</div>
+                        <div style={{
+                          fontFamily: "'DM Serif Display', serif",
+                          fontSize: 16, fontWeight: 400, color: C.cream,
+                          lineHeight: 1.3,
+                        }}>{slot.act}</div>
+                        <div style={{ fontSize: 13, color: C.creamMute, marginTop: 4, lineHeight: 1.6 }}>{slot.note}</div>
                       </div>
                     </div>
                   ))}
@@ -523,35 +623,42 @@ export default function LibGuide() {
         {activeTab === "Travel" && (
           <div>
             {TRAVEL.map((section, i) => (
-              <Card key={i} style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 24 }}>{section.icon}</span>
+              <Card key={i} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+                  <span style={{ fontSize: 28 }}>{section.icon}</span>
                   <SectionLabel>{section.title}</SectionLabel>
                 </div>
                 {section.details.map((d, j) => (
                   <div key={j} style={{
-                    padding: "7px 0",
-                    borderBottom: j < section.details.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                    fontSize: 13, color: "#cbd5e1", display: "flex", gap: 8
+                    padding: "9px 0",
+                    borderBottom: j < section.details.length - 1 ? "1px dashed rgba(253,244,227,0.12)" : "none",
+                    fontSize: 14, color: C.creamDim, display: "flex", gap: 10,
                   }}>
-                    <span style={{ color: "#7c3aed", flexShrink: 0 }}>›</span>{d}
+                    <span style={{ color: C.gold, flexShrink: 0 }}>✿</span>{d}
                   </div>
                 ))}
               </Card>
             ))}
-            <Card style={{ borderColor: "rgba(96,165,250,0.3)", background: "rgba(96,165,250,0.04)" }}>
-              <SectionLabel color="#60a5fa">🚌 Pro Tip: Take the Lightning Bus</SectionLabel>
-              <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.7, margin: "8px 0 0" }}>
-                LIB runs an official shuttle from San Diego directly to the campgrounds. 
-                If you're going with a group that wants to drink freely, not stress about parking, or simply avoid the 
-                4-hour post-festival drive while exhausted — this is the move. Book it on the LIB website, it sells out.
+            <Card style={{
+              borderColor: "rgba(201,160,220,0.4)",
+              background: "linear-gradient(135deg, rgba(201,160,220,0.12) 0%, rgba(94,234,212,0.06) 100%)",
+            }}>
+              <SectionLabel color={C.lavender}>🚌 Pro Tip: Take the Lightning Bus</SectionLabel>
+              <p style={{ color: C.creamDim, fontSize: 14, lineHeight: 1.75, margin: "10px 0 0" }}>
+                LIB runs an official shuttle from San Diego directly to the campgrounds.
+                If you're going with a group that wants to drink freely, not stress about parking, or avoid the
+                4-hour post-festival drive while exhausted — this is the move. Book on the LIB website, it sells out.
               </p>
             </Card>
           </div>
         )}
 
-        <div style={{ textAlign: "center", marginTop: 32, fontSize: 11, color: "#334155", letterSpacing: 2 }}>
-          ⚡ LIB 2026 · MEMORIAL DAY WEEKEND · BUENA VISTA LAKE, CA ⚡
+        <div style={{
+          textAlign: "center", marginTop: 40,
+          fontFamily: "'Caveat', cursive", fontSize: 22, color: C.gold,
+          transform: "rotate(-1deg)",
+        }}>
+          ⚡ lib 2026 · memorial day weekend · buena vista lake ⚡
         </div>
       </div>
     </div>
@@ -561,10 +668,13 @@ export default function LibGuide() {
 function Card({ children, style = {} }) {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.07)",
-      borderRadius: 12,
-      padding: "16px 18px",
+      background: "rgba(253,244,227,0.06)",
+      border: "1px solid rgba(253,244,227,0.16)",
+      borderRadius: 22,
+      padding: "18px 20px",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+      boxShadow: "0 10px 30px rgba(31, 11, 42, 0.25)",
       ...style
     }}>
       {children}
@@ -572,11 +682,16 @@ function Card({ children, style = {} }) {
   );
 }
 
-function SectionLabel({ children, color = "#a78bfa" }) {
+function SectionLabel({ children, color = "#fdf4e3" }) {
   return (
     <div style={{
-      fontSize: 11, letterSpacing: 2, color, fontWeight: 700,
-      textTransform: "uppercase", marginBottom: 2
+      fontFamily: "'DM Serif Display', serif",
+      fontStyle: "italic",
+      fontSize: 19,
+      color,
+      fontWeight: 400,
+      marginBottom: 2,
+      letterSpacing: 0.2,
     }}>
       {children}
     </div>
@@ -586,15 +701,25 @@ function SectionLabel({ children, color = "#a78bfa" }) {
 function StatCard({ icon, label, value }) {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.07)",
-      borderRadius: 10, padding: "12px 14px",
-      display: "flex", alignItems: "center", gap: 10
+      background: "rgba(253,244,227,0.07)",
+      border: "1px solid rgba(253,244,227,0.18)",
+      borderRadius: 16,
+      padding: "13px 15px",
+      display: "flex", alignItems: "center", gap: 12,
+      backdropFilter: "blur(6px)",
+      WebkitBackdropFilter: "blur(6px)",
     }}>
-      <span style={{ fontSize: 20 }}>{icon}</span>
+      <span style={{ fontSize: 24 }}>{icon}</span>
       <div>
-        <div style={{ fontSize: 10, color: "#64748b", letterSpacing: 1, textTransform: "uppercase" }}>{label}</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>{value}</div>
+        <div style={{
+          fontSize: 10, color: C.creamMute, letterSpacing: 1.5,
+          textTransform: "uppercase", fontWeight: 700,
+        }}>{label}</div>
+        <div style={{
+          fontFamily: "'DM Serif Display', serif",
+          fontStyle: "italic",
+          fontSize: 16, color: C.cream,
+        }}>{value}</div>
       </div>
     </div>
   );
