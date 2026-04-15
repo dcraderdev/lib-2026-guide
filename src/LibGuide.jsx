@@ -5,9 +5,9 @@ const TABS = ["Overview", "Artists", "Packing", "Outfits", "Itinerary", "Travel"
 
 // ——— Palette ———
 const C = {
-  cream: "#fdf4e3",
-  creamDim: "#efe0c2",
-  creamMute: "#c9b596",
+  cream: "#fff6e0",
+  creamDim: "#f5e7c6",
+  creamMute: "#d9c4a0",
   dust: "#a68c78",
   rose: "#ff6b9d",
   roseDeep: "#c94a77",
@@ -21,7 +21,7 @@ const C = {
 // ——— Shared font shortcuts ———
 const FONT_DISPLAY = "'Bagel Fat One', cursive";
 const FONT_HEADING = "'DM Serif Display', serif";
-const FONT_BODY = "'Quicksand', system-ui, sans-serif";
+const FONT_BODY = "'Nunito', system-ui, sans-serif";
 const FONT_SCRIPT = "'Caveat', cursive";
 
 // ——— Shopping link helpers ———
@@ -312,6 +312,8 @@ export default function LibGuide() {
           display: "flex", gap: 6, marginBottom: 24, overflowX: "auto",
           paddingBottom: 6, scrollbarWidth: "none",
           WebkitOverflowScrolling: "touch",
+          justifyContent: "center",
+          flexWrap: "wrap",
         }}>
           {TABS.map(tab => {
             const active = activeTab === tab;
@@ -656,13 +658,13 @@ export default function LibGuide() {
 function Card({ children, style = {} }) {
   return (
     <div style={{
-      background: "linear-gradient(135deg, rgba(26,8,32,0.78) 0%, rgba(45,15,48,0.74) 100%)",
-      border: "1px solid rgba(255,197,107,0.25)",
+      background: "linear-gradient(135deg, rgba(15,5,22,0.92) 0%, rgba(32,10,38,0.9) 100%)",
+      border: "1px solid rgba(255,197,107,0.3)",
       borderRadius: 20,
       padding: "18px 20px",
       backdropFilter: "blur(14px)",
       WebkitBackdropFilter: "blur(14px)",
-      boxShadow: "0 12px 40px rgba(10, 4, 15, 0.4)",
+      boxShadow: "0 12px 40px rgba(10, 4, 15, 0.5)",
       ...style,
     }}>
       {children}
