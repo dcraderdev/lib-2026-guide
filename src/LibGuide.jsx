@@ -86,10 +86,9 @@ const PACKING = {
     "Allergy meds (dust is intense)",
     "Band-aids & basic first aid kit",
   ],
-  "Dust & Elements": [
-    "Dust mask or N95 respirator (1 per day)",
-    "Goggles or wraparound sunglasses",
-    "Bandanas (multipurpose + style)",
+  "Sun & Elements": [
+    "Wraparound sunglasses (a backup pair too)",
+    "Bandanas (style + occasional neck wipe)",
     "Chapstick / lip balm",
     "Eye drops",
   ],
@@ -313,11 +312,66 @@ const PRE_TRIP_PLANS = [
   },
 ];
 
-const WEATHER = [
-  { label: "Day High", value: "85–86°F", note: "record 107°F — plan for 100°F" },
-  { label: "Night Low", value: "59–60°F", note: "can dip to 45°F" },
-  { label: "Precip", value: "≈0%", note: "bone dry, low humidity" },
-  { label: "Wind + Dust", value: "Daily PM", note: "mask + goggles required" },
+// Hourly-ish curves based on NOAA Bakersfield May normals (85–86°F avg high,
+// 59–60°F avg low) + typical Central Valley diurnal pattern. Sunrise 5:52 AM,
+// sunset 7:52 PM in late May.
+const DAYS = [
+  {
+    key: "friday",
+    label: "Friday",
+    date: "May 22",
+    color: "#ffc56b",
+    vibe: "Arrival day · first headliners",
+    weather: [
+      { time: "6 AM",  temp: "60°F", note: "cool dawn, still dark" },
+      { time: "8 AM",  temp: "68°F", note: "wake up, warm quick" },
+      { time: "Noon",  temp: "82°F", note: "heat builds" },
+      { time: "4 PM",  temp: "86°F", note: "peak + afternoon breeze" },
+      { time: "7 PM",  temp: "80°F", note: "sunset — outfit change window" },
+      { time: "9 PM",  temp: "70°F", note: "layer up (feels crisp after 85°F)" },
+      { time: "12 AM", temp: "64°F", note: "comfy, like a SD winter night" },
+      { time: "3 AM",  temp: "60°F", note: "daily low — warm layer required" },
+    ],
+    artists: ["Chase & Status", "Zeds Dead", "Barry Can't Swim", "TOKiMONSTA", "Nia Archives", "Jayda G"],
+    outfitNote: "Daytime → sunset piece ~7 PM → warm night layer by 9 PM.",
+  },
+  {
+    key: "saturday",
+    label: "Saturday",
+    date: "May 23",
+    color: "#ff6b9d",
+    vibe: "The biggest day · peak lineup",
+    weather: [
+      { time: "7 AM",  temp: "61°F", note: "cool morning, slow start" },
+      { time: "10 AM", temp: "73°F", note: "workshops + wellness window" },
+      { time: "1 PM",  temp: "83°F", note: "Mochakk afro-house hour" },
+      { time: "4 PM",  temp: "86°F", note: "peak heat + valley wind" },
+      { time: "7 PM",  temp: "79°F", note: "sunset — outfit change window" },
+      { time: "10 PM", temp: "68°F", note: "headliner warmth — you're fine" },
+      { time: "2 AM",  temp: "62°F", note: "late-night chill, layer up" },
+      { time: "5 AM",  temp: "59°F", note: "Maceo Plex sunrise territory" },
+    ],
+    artists: ["Mau P", "Sara Landry", "Overmono", "Mochakk", "Avalon Emerson", "Maceo Plex (sunrise)"],
+    outfitNote: "Day look → sunset outfit by 6:30 PM → night layer by 9:30 PM. Bring a backup piece for after 2 AM.",
+  },
+  {
+    key: "sunday",
+    label: "Sunday",
+    date: "May 24",
+    color: "#c9a0dc",
+    vibe: "Closer day · Empire at golden hour",
+    weather: [
+      { time: "8 AM",  temp: "64°F", note: "slow morning, lake float" },
+      { time: "11 AM", temp: "76°F", note: "art walk, shorter lines" },
+      { time: "2 PM",  temp: "84°F", note: "Tinashe vibe shift" },
+      { time: "5 PM",  temp: "84°F", note: "Empire of the Sun prep" },
+      { time: "7 PM",  temp: "78°F", note: "the finale — best outfit" },
+      { time: "9 PM",  temp: "70°F", note: "pack up in dusk warmth" },
+      { time: "11 PM", temp: "64°F", note: "drive home in comfy clothes" },
+    ],
+    artists: ["Empire of the Sun", "Tinashe", "Hot Since 82", "Lee Burridge"],
+    outfitNote: "Lighter day. Save your best sunset look for Empire of the Sun at 7 PM.",
+  },
 ];
 
 export default function LibGuide() {
@@ -448,63 +502,18 @@ export default function LibGuide() {
         {/* OVERVIEW */}
         {activeTab === "Overview" && (
           <div>
-            <Card>
-              <SectionLabel>The Festival</SectionLabel>
-              <p style={{ color: C.cream, lineHeight: 1.7, margin: "10px 0 0", fontSize: 15, fontWeight: 500 }}>
-                LIB is a transformational camping festival — not just a music event. 7 stages, a lake, immersive art,
-                workshops, late-night hidden spaces, and a community unlike any other. <span style={{ color: C.gold, fontWeight: 700 }}>
-                You're going Friday–Sunday (May 22–24)</span> — the full headliner run, peak crowd energy, and the legendary Sunday closer.
-              </p>
-            </Card>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}>
-              <StatCard label="Stages" value="7 worlds" />
-              <StatCard label="Daytime" value="80–100°F" />
-              <StatCard label="Nights" value="Can hit 45°F" />
-              <StatCard label="Terrain" value="Dusty + flat" />
-              <StatCard label="From SD" value="~3.5 hrs" />
-              <StatCard label="The Lake" value="Swim time!" />
+            <div style={{
+              textAlign: "center", marginBottom: 18,
+              fontSize: 14, color: C.creamDim, fontWeight: 600, lineHeight: 1.55,
+              padding: "0 8px",
+            }}>
+              Three days, three day-cards. Each one shows the day's temp curve,
+              the artists worth structuring around, and when to swap looks.
             </div>
 
-            <Card style={{ marginTop: 14 }}>
-              <SectionLabel color={C.gold}>Weather · May 20–24</SectionLabel>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-                {WEATHER.map((w, i) => (
-                  <div key={i} style={{
-                    background: "rgba(253,244,227,0.08)",
-                    border: "1px solid rgba(253,244,227,0.18)",
-                    borderRadius: 12, padding: "10px 12px",
-                  }}>
-                    <div style={{
-                      fontSize: 10, color: C.creamMute, letterSpacing: 1.2,
-                      textTransform: "uppercase", fontWeight: 700, marginBottom: 4,
-                    }}>{w.label}</div>
-                    <div style={{
-                      fontFamily: FONT_HEADING, fontSize: 18, color: C.cream, lineHeight: 1.1,
-                    }}>{w.value}</div>
-                    <div style={{ fontSize: 11, color: C.creamDim, marginTop: 3 }}>{w.note}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 11, color: C.creamMute, marginTop: 10, fontStyle: "italic" }}>
-                Source: NOAA / NWS Hanford — Bakersfield climate normals
-              </div>
-            </Card>
-
-            <Card style={{ marginTop: 14, borderColor: "rgba(255,197,107,0.5)" }}>
-              <SectionLabel color={C.gold}>Critical Notes for First-Timers</SectionLabel>
-              <ul style={{
-                color: C.cream, lineHeight: 1.9, margin: "10px 0 0",
-                paddingLeft: 22, fontSize: 14, fontWeight: 500,
-              }}>
-                <li>Gate hours are NOT 24/7 — if you leave after gates close, you can't return until morning</li>
-                <li>Temperatures swing 40–50°F from day to night — always carry a warm layer</li>
-                <li>Dust storms hit without warning — bring a mask every single day</li>
-                <li>Plan 2 gallons of water per person per day — seriously</li>
-                <li>Stake your tent AND shade structure down tight — wind is intense</li>
-                <li>Set times drop closer to the festival — download the LIB app now for alerts</li>
-              </ul>
-            </Card>
+            {DAYS.map(day => (
+              <DayCard key={day.key} day={day} onOpenPlan={() => setActiveTab("Itinerary")} />
+            ))}
           </div>
         )}
 
@@ -899,25 +908,120 @@ function SectionLabel({ children, color = "#fdf4e3" }) {
   );
 }
 
-function StatCard({ label, value }) {
+function DayCard({ day, onOpenPlan }) {
   return (
-    <div style={{
-      background: "linear-gradient(135deg, rgba(26,8,32,0.65) 0%, rgba(45,15,48,0.6) 100%)",
-      border: "1px solid rgba(255,197,107,0.28)",
-      borderRadius: 14,
-      padding: "12px 14px",
-      backdropFilter: "blur(10px)",
-      WebkitBackdropFilter: "blur(10px)",
+    <Card style={{
+      marginBottom: 16,
+      borderColor: `${day.color}55`,
+      borderLeft: `4px solid ${day.color}`,
     }}>
+      {/* Header row */}
       <div style={{
-        fontSize: 10, color: C.creamMute, letterSpacing: 1.4,
-        textTransform: "uppercase", fontWeight: 700, marginBottom: 3,
-      }}>{label}</div>
+        display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+        flexWrap: "wrap", gap: 8, marginBottom: 4,
+      }}>
+        <div>
+          <div style={{
+            fontFamily: FONT_HEADING, fontSize: 28, color: day.color, lineHeight: 1,
+          }}>{day.label}</div>
+          <div style={{
+            fontSize: 12, color: C.creamMute, fontWeight: 700,
+            letterSpacing: 1, textTransform: "uppercase", marginTop: 4,
+          }}>{day.date}</div>
+        </div>
+        <div style={{
+          fontSize: 13, color: C.creamDim, fontWeight: 600,
+          fontStyle: "italic", maxWidth: "60%", textAlign: "right",
+        }}>{day.vibe}</div>
+      </div>
+
+      {/* Temperature curve */}
       <div style={{
-        fontFamily: FONT_HEADING,
-        fontSize: 17, color: C.cream, lineHeight: 1.1,
-      }}>{value}</div>
-    </div>
+        marginTop: 14,
+        background: "rgba(0,0,0,0.25)",
+        borderRadius: 12,
+        padding: "12px 14px",
+      }}>
+        <div style={{
+          fontSize: 10, color: C.creamMute, fontWeight: 800,
+          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8,
+        }}>Temp Through the Day</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {day.weather.map((w, i) => (
+            <div key={i} style={{
+              display: "grid",
+              gridTemplateColumns: "60px 60px 1fr",
+              gap: 10, alignItems: "baseline",
+            }}>
+              <span style={{
+                fontSize: 12, color: C.creamDim, fontWeight: 700,
+              }}>{w.time}</span>
+              <span style={{
+                fontFamily: FONT_HEADING, fontSize: 17, color: day.color, lineHeight: 1,
+              }}>{w.temp}</span>
+              <span style={{
+                fontSize: 12, color: C.creamDim, fontWeight: 500, lineHeight: 1.4,
+              }}>{w.note}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Outfit guidance */}
+      <div style={{
+        marginTop: 12,
+        display: "flex", gap: 8, alignItems: "flex-start",
+        background: `${day.color}14`,
+        border: `1px solid ${day.color}30`,
+        borderRadius: 10,
+        padding: "10px 12px",
+      }}>
+        <span style={{
+          fontSize: 10, color: day.color, fontWeight: 800,
+          letterSpacing: 1, textTransform: "uppercase", whiteSpace: "nowrap",
+          paddingTop: 2,
+        }}>Outfit</span>
+        <span style={{
+          fontSize: 13, color: C.cream, fontWeight: 600, lineHeight: 1.5,
+        }}>{day.outfitNote}</span>
+      </div>
+
+      {/* Artists */}
+      <div style={{ marginTop: 14 }}>
+        <div style={{
+          fontSize: 10, color: C.creamMute, fontWeight: 800,
+          letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8,
+        }}>Look Forward To</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {day.artists.map((a, i) => (
+            <span key={i} style={{
+              fontSize: 12, padding: "5px 11px", borderRadius: 999,
+              background: "rgba(253,244,227,0.08)",
+              color: C.cream, fontWeight: 700,
+              border: `1px solid ${day.color}50`,
+            }}>{a}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Plan button */}
+      <button
+        onClick={onOpenPlan}
+        style={{
+          marginTop: 14, width: "100%",
+          padding: "12px 16px", borderRadius: 12,
+          border: "none",
+          background: `linear-gradient(135deg, ${day.color}, #fdf4e3)`,
+          color: C.plum,
+          fontFamily: FONT_BODY, fontSize: 13, fontWeight: 800,
+          letterSpacing: 0.5, textTransform: "uppercase",
+          cursor: "pointer",
+          boxShadow: `0 6px 20px ${day.color}40`,
+        }}
+      >
+        Full {day.label} Plan →
+      </button>
+    </Card>
   );
 }
 
