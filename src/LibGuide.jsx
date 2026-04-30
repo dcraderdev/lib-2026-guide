@@ -420,20 +420,46 @@ const TOTAL_PACKING_ITEMS = PACKING_SECTIONS.reduce(
 );
 
 // ——— Persistence (localStorage, result-style) ———
+// Storage shape: Record<id, { acquired: boolean, packed: boolean }>.
+// Defaults derived from item.owned, so absence in the map === "unmodified".
 const PACKING_STORAGE_KEY = "lib-2026-packing-v8";
 
-const loadPackedState = () => {
+// Effective state for an item, combining storage with item.owned defaults.
+const itemState = (item, stored) => {
+  const entry = stored[item.id];
+  return {
+    acquired: entry?.acquired ?? item.owned,
+    packed: entry?.packed ?? false,
+  };
+};
+
+const loadPackState = () => {
   try {
     if (typeof window === "undefined") return { ok: true, data: {} };
     const raw = window.localStorage.getItem(PACKING_STORAGE_KEY);
-    return { ok: true, data: raw ? JSON.parse(raw) : {} };
+    if (!raw) return { ok: true, data: {} };
+    const parsed = JSON.parse(raw);
+    // Migrate legacy shape: Record<id, boolean> where true=packed.
+    // Per spec, packed=true → acquired=true && packed=true.
+    const migrated = {};
+    for (const [id, value] of Object.entries(parsed || {})) {
+      if (typeof value === "boolean") {
+        if (value) migrated[id] = { acquired: true, packed: true };
+      } else if (value && typeof value === "object") {
+        migrated[id] = {
+          acquired: !!value.acquired,
+          packed: !!value.packed,
+        };
+      }
+    }
+    return { ok: true, data: migrated };
   } catch (err) {
     console.warn("🎒 [lib-packing] failed to load state:", err);
     return { ok: false, data: {}, error: err };
   }
 };
 
-const savePackedState = (state) => {
+const savePackState = (state) => {
   try {
     if (typeof window === "undefined") return { ok: true };
     window.localStorage.setItem(PACKING_STORAGE_KEY, JSON.stringify(state));
@@ -740,16 +766,32 @@ export default function LibGuide() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [outfitFilter, setOutfitFilter] = useState("all");
 
-  // Persistent packed state (localStorage). Keyed by stable item id.
-  const [packed, setPacked] = useState(() => loadPackedState().data);
+  // Persistent pack state (localStorage). Keyed by stable item id.
+  // Each entry is { acquired, packed }. BUY items default to acquired=false,
+  // HAVE items (item.owned=true) default to acquired=true.
+  const [packState, setPackState] = useState(() => loadPackState().data);
   const [packingFilter, setPackingFilter] = useState("all");
 
   useEffect(() => {
-    savePackedState(packed);
-  }, [packed]);
+    savePackState(packState);
+  }, [packState]);
 
-  const togglePacked = (id) => {
-    setPacked((prev) => ({ ...prev, [id]: !prev[id] }));
+  // BUY items step BUY → HAVE → PACKED. HAVE items step HAVE → PACKED.
+  // Tapping a packed item unpacks it back to HAVE (acquired stays true).
+  const tapItem = (item) => {
+    setPackState((prev) => {
+      const current = itemState(item, prev);
+      if (!item.owned && !current.acquired) {
+        return {
+          ...prev,
+          [item.id]: { acquired: true, packed: false },
+        };
+      }
+      return {
+        ...prev,
+        [item.id]: { acquired: current.acquired, packed: !current.packed },
+      };
+    });
   };
 
   const resetAllPacked = () => {
@@ -758,33 +800,44 @@ export default function LibGuide() {
         "Reset every packed checkmark? This will clear all your progress."
       )
     ) {
-      setPacked({});
+      setPackState({});
     }
   };
 
   const totalPacked = useMemo(
     () =>
       PACKING_SECTIONS.reduce(
-        (n, s) => n + s.items.filter((i) => packed[i.id]).length,
+        (n, s) =>
+          n + s.items.filter((i) => itemState(i, packState).packed).length,
         0
       ),
-    [packed]
+    [packState]
   );
   const totalToBuy = useMemo(
     () =>
-      PACKING_SECTIONS.reduce(
-        (n, s) => n + s.items.filter((i) => !packed[i.id] && !i.owned).length,
-        0
-      ),
-    [packed]
+      PACKING_SECTIONS.reduce((n, s) => {
+        return (
+          n +
+          s.items.filter((i) => {
+            const st = itemState(i, packState);
+            return !st.packed && !st.acquired;
+          }).length
+        );
+      }, 0),
+    [packState]
   );
   const totalToPack = useMemo(
     () =>
-      PACKING_SECTIONS.reduce(
-        (n, s) => n + s.items.filter((i) => !packed[i.id] && i.owned).length,
-        0
-      ),
-    [packed]
+      PACKING_SECTIONS.reduce((n, s) => {
+        return (
+          n +
+          s.items.filter((i) => {
+            const st = itemState(i, packState);
+            return !st.packed && st.acquired;
+          }).length
+        );
+      }, 0),
+    [packState]
   );
 
   const filteredOutfits = useMemo(() => {
@@ -1129,17 +1182,19 @@ export default function LibGuide() {
               }
 
               const visibleItems = section.items.filter((item) => {
-                const isPacked = !!packed[item.id];
+                const st = itemState(item, packState);
                 if (packingFilter === "all") return true;
-                if (packingFilter === "buy") return !isPacked && !item.owned;
-                if (packingFilter === "have") return !isPacked && item.owned;
-                if (packingFilter === "packed") return isPacked;
+                if (packingFilter === "buy") return !st.packed && !st.acquired;
+                if (packingFilter === "have") return !st.packed && st.acquired;
+                if (packingFilter === "packed") return st.packed;
                 return true;
               });
 
               if (visibleItems.length === 0) return null;
 
-              const sectionPacked = section.items.filter((i) => packed[i.id]).length;
+              const sectionPacked = section.items.filter(
+                (i) => itemState(i, packState).packed
+              ).length;
               const sectionTotal = section.items.length;
 
               return (
@@ -1165,39 +1220,42 @@ export default function LibGuide() {
                     flexDirection: "column", gap: 4,
                   }}>
                     {visibleItems.map((item) => {
-                      const isPacked = !!packed[item.id];
-                      const isOwned = item.owned;
-                      // 3 visual states:
-                      //   buy:    !isOwned && !isPacked → empty outline box
-                      //   have:    isOwned && !isPacked → turquoise check (already own it)
-                      //   packed:  isPacked             → gold/rose fill + strikethrough
+                      const st = itemState(item, packState);
+                      const isPacked = st.packed;
+                      const isAcquired = st.acquired;
+                      // 3 visual states (driven by effective acquired/packed,
+                      // not item.owned — so a BUY item that's been acquired
+                      // shows the same HAVE styling as an originally-owned item):
+                      //   buy:    !isAcquired && !isPacked → empty outline box
+                      //   have:    isAcquired && !isPacked → turquoise check
+                      //   packed:  isPacked                → gold/rose fill + strikethrough
                       const tagColor = isPacked
                         ? C.gold
-                        : isOwned
+                        : isAcquired
                         ? C.turquoise
                         : C.rose;
                       const tagLabel = isPacked
                         ? "packed"
-                        : isOwned
+                        : isAcquired
                         ? "have"
                         : "buy";
                       return (
                         <div
                           key={item.id}
-                          onClick={() => togglePacked(item.id)}
+                          onClick={() => tapItem(item)}
                           style={{
                             display: "flex", alignItems: "center", gap: 12,
                             padding: "10px 12px", borderRadius: 10,
                             cursor: "pointer",
                             background: isPacked
                               ? "rgba(255,197,107,0.14)"
-                              : isOwned
+                              : isAcquired
                               ? "rgba(94,234,212,0.05)"
                               : "transparent",
                             borderLeft: `3px solid ${
                               isPacked
                                 ? C.gold
-                                : isOwned
+                                : isAcquired
                                 ? C.turquoise
                                 : "rgba(255,107,157,0.45)"
                             }`,
@@ -1210,7 +1268,7 @@ export default function LibGuide() {
                             flexShrink: 0,
                             border: isPacked
                               ? `2px solid ${C.gold}`
-                              : isOwned
+                              : isAcquired
                               ? `2px solid ${C.turquoise}`
                               : "2px solid rgba(253,244,227,0.35)",
                             background: isPacked
@@ -1224,7 +1282,7 @@ export default function LibGuide() {
                             {isPacked && (
                               <span style={{ color: C.plum, fontSize: 13 }}>✓</span>
                             )}
-                            {!isPacked && isOwned && (
+                            {!isPacked && isAcquired && (
                               <span style={{ color: C.turquoise, fontSize: 14 }}>✓</span>
                             )}
                           </div>
