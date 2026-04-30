@@ -143,6 +143,7 @@ const PACKING_V8 = [
       { text: "2× hydration backpacks (Camelbak style)", owned: false },
       { text: "2× reusable water bottles", owned: false },
       { text: "Coffee maker + grounds", owned: true },
+      { text: "Coffee cups / mugs ×2", owned: false },
       { text: "Thermos", owned: false },
     ],
   },
@@ -156,6 +157,8 @@ const PACKING_V8 = [
       { text: "Blankets", owned: true },
       { text: "Sheets", owned: true },
       { text: "Pillows (×2)", owned: false },
+      { text: "Eye mask", owned: false },
+      { text: "Extra pillowcase", owned: false },
     ],
   },
   {
@@ -187,6 +190,7 @@ const PACKING_V8 = [
       { text: "HP300 portable power station", owned: true },
       { text: "Charging cables (USB-C, lightning, USB-A)", owned: false },
       { text: "12V car charging cable for HP300", owned: false },
+      { text: "12V car charger / cigarette splitter", owned: false },
     ],
   },
   {
@@ -250,6 +254,8 @@ const PACKING_V8 = [
       { text: "Eye drops", owned: false },
       { text: "Allergy meds (Zyrtec/Claritin)", owned: false },
       { text: "Pepto / Tums", owned: false },
+      { text: "Small scissors", owned: false },
+      { text: "Q-tips", owned: false },
     ],
   },
   {
@@ -257,6 +263,13 @@ const PACKING_V8 = [
     items: [
       { text: "Battery-powered handheld fan", owned: false },
       { text: "Cooling towel", owned: false },
+    ],
+  },
+  {
+    name: "🦟 BUG / OUTDOOR",
+    items: [
+      { text: "Bug spray", owned: false },
+      { text: "After-bite stick", owned: false },
     ],
   },
   {
@@ -349,6 +362,12 @@ const PACKING_V8 = [
       { text: "Carabiners (upgrade — current not great)", owned: false },
       { text: "Sharpie", owned: false },
       { text: "Lighters (×2-3)", owned: false },
+    ],
+  },
+  {
+    name: "🧹 CLEANUP",
+    items: [
+      { text: "Small broom", owned: false },
     ],
   },
   {
