@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HER_OUTFITS, HIS_LOOKS } from "./outfits.js";
 
 const TABS = ["Overview", "Artists", "Camp", "Packing", "Outfits", "Itinerary", "Travel"];
@@ -64,61 +64,380 @@ const ARTISTS = [
   }
 ];
 
-const PACKING = {
-  "Camp Essentials": [
-    "Tent + extra stakes (wind storms are real here)",
-    "Sleeping bag rated to 45°F for cold nights",
-    "Camping chair + inflatable couch/lounger",
-    "Canopy/shade structure for camp",
-    "Tapestries to hang from canopy sides",
-    "Fairy lights for camp vibes",
-    "Battery-powered fan + mister",
-    "Small table for camp setup",
-    "Hammock",
-  ],
-  "Water & Health": [
-    "2× gallon jugs of water (plan 2 gal/day)",
-    "Reusable hydration pack / Nalgene",
-    "Electrolyte packets (essential!)",
-    "Sunscreen SPF 50+ (reapply constantly)",
-    "Aloe vera gel",
-    "Ibuprofen / Tylenol",
-    "Allergy meds (dust is intense)",
-    "Band-aids & basic first aid kit",
-  ],
-  "Sun & Elements": [
-    "Wraparound sunglasses (a backup pair too)",
-    "Bandanas (style + occasional neck wipe)",
-    "Chapstick / lip balm",
-    "Eye drops",
-  ],
-  "Gear & Tech": [
-    "Portable charger (20,000mAh+)",
-    "Headlamp + extra batteries",
-    "Fanny pack / crossbody for festival",
-    "Lock for your car / valuables",
-    "Download the LIB app before you go",
-    "Screenshot schedule & venue map offline",
-    "Wristband backup (know your info)",
-  ],
-  "Toiletries & Comfort": [
-    "Baby wipes (essential for freshening up)",
-    "Toilet paper (portapotties run out)",
-    "Dry shampoo",
-    "Travel towel",
-    "Deodorant (extra sticks)",
-    "Shower shoes / flip flops",
-    "Earplugs for sleeping",
-  ],
-  "Food & Drink": [
-    "Easy camp food (granola bars, trail mix, nuts)",
-    "Portable camp stove for meals",
-    "Airtight containers (squirrels WILL steal food)",
-    "Cooler with ice for perishables",
-    "Reusable cups and utensils",
-    "Alcohol for camp (not allowed in festival grounds)",
-    "Trash bags (Leave No Trace!)",
-  ]
+// ——— Master Pack List v8 ———
+// owned: true  = ✓ in source list (have it, just need to pack)
+// owned: false = □ in source list (still need to buy/acquire)
+const PACKING_V8 = [
+  {
+    name: "🥩 FOOD — PROTEIN",
+    items: [
+      { text: "3.5 lbs pre-cooked chicken", owned: false },
+      { text: "2.5 lbs pre-cooked ground turkey 93/7", owned: false },
+      { text: "1 lb fresh ahi tuna steaks", owned: false },
+      { text: "1 pack pre-cooked breakfast sausage", owned: false },
+      { text: "12 hard-boiled eggs", owned: false },
+      { text: "12 raw eggs (scrambles)", owned: false },
+      { text: "8 Greek yogurt cups (Fage 0%) — 1 cup max per sitting", owned: false },
+      { text: "1× 12-pack string cheese", owned: false },
+      { text: "3 bags turkey jerky", owned: false },
+      { text: "4 cans tuna in water", owned: false },
+    ],
+  },
+  {
+    name: "🥬 VEGGIES / FRESH",
+    items: [
+      { text: "2 bags baby carrots", owned: false },
+      { text: "3 cucumbers", owned: false },
+      { text: "8 bell peppers", owned: false },
+      { text: "3 salad kits (low-cabbage)", owned: false },
+      { text: "4 avocados", owned: false },
+      { text: "1 bunch green onions", owned: false },
+    ],
+  },
+  {
+    name: "🍉 FRUIT",
+    items: [
+      { text: "1 cantaloupe", owned: false },
+      { text: "½ watermelon (or pre-cut container)", owned: false },
+      { text: "1 pint blueberries (small portions)", owned: false },
+      { text: "3 apples", owned: false },
+    ],
+  },
+  {
+    name: "🫒 FATS / SNACK",
+    items: [
+      { text: "Olive oil bottle", owned: false },
+      { text: "1 lb mixed nuts (small handfuls)", owned: false },
+      { text: "1 dark chocolate bar (85%+)", owned: false },
+    ],
+  },
+  {
+    name: "🌯 CARBS",
+    items: [
+      { text: "3 packs low-carb tortillas", owned: false },
+      { text: "Pre-cooked white rice (4-5 portions, Tupperware)", owned: false },
+      { text: "1 box plain rice cakes", owned: false },
+    ],
+  },
+  {
+    name: "🥛 OTHER",
+    items: [
+      { text: "½ gallon almond milk", owned: false },
+      { text: "Seasonings/sauces (grab variety)", owned: false },
+    ],
+  },
+  {
+    name: "💊 SUPPLEMENTS",
+    items: [
+      { text: "Pill case (you)", owned: true },
+      { text: "Pill case (GF)", owned: true },
+      { text: "Digestive enzymes (NOW Super Enzymes)", owned: false },
+      { text: "Activated charcoal", owned: false },
+    ],
+  },
+  {
+    name: "💧 HYDRATION",
+    items: [
+      { text: "Water dispenser pump (USB rechargeable)", owned: true },
+      { text: "2× 5-gallon water jugs", owned: false },
+      { text: "2× hydration backpacks (Camelbak style)", owned: false },
+      { text: "2× reusable water bottles", owned: false },
+      { text: "Coffee maker + grounds", owned: true },
+      { text: "Thermos", owned: false },
+    ],
+  },
+  {
+    name: "🛏️ SLEEP",
+    items: [
+      { text: "Nemo Roamer Double mattress", owned: true },
+      { text: "ETENWOLF AIR 3 pump (with 600 lumen light)", owned: true },
+      { text: "Twin mattress (inside truck)", owned: true },
+      { text: "Sleeping bag(s)", owned: true },
+      { text: "Blankets", owned: true },
+      { text: "Sheets", owned: true },
+      { text: "Pillows (×2)", owned: false },
+    ],
+  },
+  {
+    name: "🏕️ CAMP SETUP",
+    items: [
+      { text: "9×10 car extension tent", owned: true },
+      { text: "Tent stakes (in car)", owned: true },
+      { text: "Shag carpet", owned: true },
+      { text: "2 tapestries", owned: true },
+      { text: "2 camp chairs", owned: false },
+      { text: "Folding camp table", owned: false },
+      { text: "Ground tarp", owned: false },
+    ],
+  },
+  {
+    name: "🔦 LIGHTING",
+    items: [
+      { text: "Nice flashlight", owned: true },
+      { text: "Multiple lanterns", owned: true },
+      { text: "Fairy lights", owned: true },
+      { text: "LED lights", owned: true },
+      { text: "2 headlamps", owned: false },
+      { text: "Extra batteries", owned: false },
+    ],
+  },
+  {
+    name: "🔋 POWER",
+    items: [
+      { text: "HP300 portable power station", owned: true },
+      { text: "Charging cables (USB-C, lightning, USB-A)", owned: false },
+      { text: "12V car charging cable for HP300", owned: false },
+    ],
+  },
+  {
+    name: "🍳 COOKING",
+    items: [
+      { text: "CAMPINGMOON 13-pc stainless steel cookware set (in cart)", owned: false },
+      { text: "36-piece camping utensil kit (in cart)", owned: false },
+      { text: "Collapsible cutting board / dish washing bowl (in cart)", owned: false },
+      { text: "Butane camp stove + 2-3 fuel canisters", owned: false },
+      { text: "Aluminum foil", owned: false },
+      { text: "Saran wrap", owned: false },
+      { text: "Ziploc bags (multiple sizes)", owned: false },
+      { text: "Trash bags", owned: false },
+      { text: "2 lighters", owned: false },
+      { text: "Salt + pepper grinder (small)", owned: false },
+      { text: "Biodegradable dish soap", owned: false },
+      { text: "Sponge / scrubby", owned: false },
+    ],
+  },
+  {
+    name: "🐟 AHI NIGHT SPECIAL",
+    items: [
+      { text: "Sesame seeds", owned: false },
+      { text: "Furikake seasoning", owned: false },
+      { text: "Soy sauce packets (low-sodium)", owned: false },
+      { text: "Wasabi paste (optional)", owned: false },
+    ],
+  },
+  {
+    name: "🧘 WELLNESS",
+    items: [
+      { text: "2× yoga mats", owned: true },
+      { text: "Yoga/stretch clothes (×2 outfits each)", owned: true },
+    ],
+  },
+  {
+    name: "🚿 HYGIENE",
+    items: [
+      { text: "Sunscreen (face + body)", owned: true },
+      { text: "Wet wipes", owned: true },
+      { text: "Dry shampoo", owned: true },
+      { text: "Lip balm", owned: true },
+      { text: "Toothbrushes (×2) + toothpaste", owned: false },
+      { text: "Deodorant", owned: false },
+      { text: "Toilet paper backup (1 roll in Ziploc)", owned: false },
+      { text: "Hand sanitizer (×2 bottles)", owned: false },
+      { text: "Microfiber pack towel", owned: false },
+      { text: "Body wipes (Goodwipes)", owned: false },
+      { text: "Tampons / pads (for GF)", owned: false },
+    ],
+  },
+  {
+    name: "🩹 HEALTH",
+    items: [
+      { text: "First aid kit (need to pack)", owned: true },
+      { text: "Ibuprofen", owned: false },
+      { text: "Tylenol", owned: false },
+      { text: "Earplugs (Loops or high-fidelity, ×2)", owned: false },
+      { text: "Eye drops", owned: false },
+      { text: "Allergy meds (Zyrtec/Claritin)", owned: false },
+      { text: "Pepto / Tums", owned: false },
+    ],
+  },
+  {
+    name: "🌬️ HEAT SURVIVAL",
+    items: [
+      { text: "Battery-powered handheld fan", owned: false },
+      { text: "Cooling towel", owned: false },
+    ],
+  },
+  {
+    name: "🎒 FESTIVAL CARRY",
+    items: [
+      { text: "2 hydration backpacks", owned: false },
+      { text: "Fanny pack / crossbody bag", owned: false },
+      { text: "Sunglasses (multiple pairs)", owned: true },
+    ],
+  },
+  {
+    name: "😴 BEDTIME / COMFY",
+    items: [
+      { text: "Comfy sleep clothes (×2 sets each)", owned: true },
+      { text: "Warm hoodie / crewneck", owned: true },
+      { text: "Extra socks", owned: true },
+      { text: "Beanie", owned: false },
+    ],
+  },
+  { name: "👕 OUTFITS — DAYTIME", items: [], header: true },
+  {
+    name: "🌞 DAYTIME OUTFIT 1",
+    items: [
+      { text: "Shirt + shorts combo #1", owned: true },
+    ],
+  },
+  {
+    name: "🌞 DAYTIME OUTFIT 2",
+    items: [
+      { text: "Shirt + green shorts combo #2", owned: true },
+    ],
+  },
+  {
+    name: "🌞 DAYTIME OUTFIT 3",
+    items: [
+      { text: "Confirm 3rd daytime outfit (CHECK CLOSET)", owned: false },
+    ],
+  },
+  { name: "👕 OUTFITS — NIGHTTIME", items: [], header: true },
+  {
+    name: "🌙 NIGHT 1: LEATHER NIGHT",
+    items: [
+      { text: "Sleeveless leather button-up", owned: true },
+      { text: "Leather shorts", owned: true },
+      { text: "White tank underneath", owned: true },
+      { text: "Footwear (combat boots / chunky black sneakers)", owned: false },
+    ],
+  },
+  {
+    name: "🌙 NIGHT 2: CHAIN MAIL BLING NIGHT",
+    items: [
+      { text: "Black sequin button-up shirt", owned: true },
+      { text: "Diamond/iced chain", owned: true },
+      { text: "Grill", owned: true },
+      { text: "Black tailored shorts", owned: false },
+      { text: "Footwear (chunky sneakers / Chelsea boots)", owned: false },
+      { text: "Black oval sunglasses (recommended)", owned: false },
+      { text: "Silver rings (recommended)", owned: false },
+    ],
+  },
+  {
+    name: "🤠 NIGHT 3: COWBOY NIGHT",
+    items: [
+      { text: "Short denim overalls", owned: true },
+      { text: "Straw cowboy hat", owned: true },
+      { text: "Cowboy boots (otw)", owned: true },
+      { text: "Turquoise bandana (otw)", owned: true },
+      { text: "Turquoise ring (otw)", owned: true },
+      { text: "Hanes white ribbed tank 3-pack (~$15)", owned: false },
+      { text: "White long-sleeve henley (backup if cold ~$25)", owned: false },
+      { text: "Optional: western leather belt + buckle", owned: false },
+      { text: "Optional: leather wrap bracelet", owned: false },
+    ],
+  },
+  {
+    name: "👕 OUTFITS — ACCESSORIES & EXTRAS",
+    items: [
+      { text: "Multiple bandanas (×3-4)", owned: false },
+      { text: "Light rain jacket or poncho", owned: false },
+      { text: "Camp shoes / Chacos", owned: true },
+    ],
+  },
+  {
+    name: "🛠️ FIXERS & UTILITY",
+    items: [
+      { text: "Duct tape", owned: false },
+      { text: "Zip ties", owned: false },
+      { text: "Multi-tool (Leatherman or similar)", owned: false },
+      { text: "Bungee cords", owned: false },
+      { text: "Carabiners (upgrade — current not great)", owned: false },
+      { text: "Sharpie", owned: false },
+      { text: "Lighters (×2-3)", owned: false },
+    ],
+  },
+  {
+    name: "📋 DOCS & MONEY",
+    items: [
+      { text: "Festival tickets (printed + on phone)", owned: false },
+      { text: "Driver's license / ID", owned: false },
+      { text: "Cash $100-200", owned: false },
+      { text: "Insurance card", owned: false },
+      { text: "Phone", owned: false },
+    ],
+  },
+  {
+    name: "📦 STORAGE & ORGANIZATION",
+    items: [
+      { text: "Plano StowAway 3700 Deep", owned: false },
+      { text: "2 coolers (food + drinks)", owned: false },
+      { text: "Frozen water bottles (double as ice + drinking)", owned: false },
+      { text: "Tupperware", owned: false },
+      { text: "Reusable shopping / dry bags", owned: false },
+    ],
+  },
+  {
+    name: "🍳 KITCHEN TOOLS (from home)",
+    items: [
+      { text: "Spatula", owned: false },
+      { text: "Tongs", owned: false },
+      { text: "Sharp chef knife (in sheath)", owned: false },
+      { text: "4 forks", owned: false },
+      { text: "4 spoons", owned: false },
+      { text: "Cooking spoon", owned: false },
+    ],
+  },
+  {
+    name: "🚗 TRUCK BUILD",
+    items: [
+      { text: "Drawer system (build by mid-May)", owned: false },
+      { text: "Nemo Roamer Double mattress", owned: true },
+      { text: "ETENWOLF AIR 3 pump", owned: true },
+    ],
+  },
+];
+
+// Stable slug from a string (strips emojis, lowercases, hyphenates).
+const slugify = (s) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+// Pre-compute stable ids per item so they survive reloads.
+const PACKING_SECTIONS = PACKING_V8.map((section) => {
+  const sectionSlug = slugify(section.name);
+  return {
+    ...section,
+    slug: sectionSlug,
+    items: section.items.map((item) => ({
+      ...item,
+      id: `${sectionSlug}--${slugify(item.text)}`,
+    })),
+  };
+});
+
+const TOTAL_PACKING_ITEMS = PACKING_SECTIONS.reduce(
+  (sum, s) => sum + s.items.length,
+  0
+);
+
+// ——— Persistence (localStorage, result-style) ———
+const PACKING_STORAGE_KEY = "lib-2026-packing-v8";
+
+const loadPackedState = () => {
+  try {
+    if (typeof window === "undefined") return { ok: true, data: {} };
+    const raw = window.localStorage.getItem(PACKING_STORAGE_KEY);
+    return { ok: true, data: raw ? JSON.parse(raw) : {} };
+  } catch (err) {
+    console.warn("🎒 [lib-packing] failed to load state:", err);
+    return { ok: false, data: {}, error: err };
+  }
+};
+
+const savePackedState = (state) => {
+  try {
+    if (typeof window === "undefined") return { ok: true };
+    window.localStorage.setItem(PACKING_STORAGE_KEY, JSON.stringify(state));
+    return { ok: true };
+  } catch (err) {
+    console.warn("🎒 [lib-packing] failed to save state:", err);
+    return { ok: false, error: err };
+  }
 };
 
 // Slot types drive the color bar on the left of each itinerary row.
@@ -415,12 +734,54 @@ const DAYS = [
 
 export default function LibGuide() {
   const [activeTab, setActiveTab] = useState("Overview");
-  const [checkedItems, setCheckedItems] = useState({});
   const [outfitFilter, setOutfitFilter] = useState("all");
 
-  const toggleCheck = (key) => {
-    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+  // Persistent packed state (localStorage). Keyed by stable item id.
+  const [packed, setPacked] = useState(() => loadPackedState().data);
+  const [packingFilter, setPackingFilter] = useState("all");
+
+  useEffect(() => {
+    savePackedState(packed);
+  }, [packed]);
+
+  const togglePacked = (id) => {
+    setPacked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const resetAllPacked = () => {
+    if (
+      window.confirm(
+        "Reset every packed checkmark? This will clear all your progress."
+      )
+    ) {
+      setPacked({});
+    }
+  };
+
+  const totalPacked = useMemo(
+    () =>
+      PACKING_SECTIONS.reduce(
+        (n, s) => n + s.items.filter((i) => packed[i.id]).length,
+        0
+      ),
+    [packed]
+  );
+  const totalToBuy = useMemo(
+    () =>
+      PACKING_SECTIONS.reduce(
+        (n, s) => n + s.items.filter((i) => !packed[i.id] && !i.owned).length,
+        0
+      ),
+    [packed]
+  );
+  const totalToPack = useMemo(
+    () =>
+      PACKING_SECTIONS.reduce(
+        (n, s) => n + s.items.filter((i) => !packed[i.id] && i.owned).length,
+        0
+      ),
+    [packed]
+  );
 
   const filteredOutfits = useMemo(() => {
     if (outfitFilter === "all") return HER_OUTFITS;
@@ -662,45 +1023,237 @@ export default function LibGuide() {
         {/* PACKING */}
         {activeTab === "Packing" && (
           <div>
-            <TabNote>Tap items to check off your list</TabNote>
-            {Object.entries(PACKING).map(([category, items], ci) => (
-              <Card key={ci} style={{ marginBottom: 14 }}>
-                <SectionLabel>{category}</SectionLabel>
-                <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
-                  {items.map((item, ii) => {
-                    const key = `${ci}-${ii}`;
-                    const checked = checkedItems[key];
-                    return (
-                      <div
-                        key={ii}
-                        onClick={() => toggleCheck(key)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 12,
-                          padding: "10px 12px", borderRadius: 10, cursor: "pointer",
-                          background: checked ? "rgba(255,197,107,0.18)" : "transparent",
-                          transition: "background 0.2s",
-                          opacity: checked ? 0.55 : 1,
-                        }}
-                      >
-                        <div style={{
-                          width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-                          border: checked ? `2px solid ${C.gold}` : "2px solid rgba(253,244,227,0.35)",
-                          background: checked ? `linear-gradient(135deg, ${C.gold}, ${C.rose})` : "transparent",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 11, color: C.plum, fontWeight: 900,
-                        }}>
-                          {checked && "✓"}
-                        </div>
-                        <span style={{
-                          fontSize: 14, color: C.cream, fontWeight: 500,
-                          textDecoration: checked ? "line-through" : "none",
-                        }}>{item}</span>
-                      </div>
-                    );
-                  })}
+            {/* Top: overall counter + reset + filter chips */}
+            <Card style={{ marginBottom: 14 }}>
+              <div style={{
+                display: "flex", justifyContent: "space-between",
+                alignItems: "center", flexWrap: "wrap", gap: 10,
+              }}>
+                <div>
+                  <div style={{
+                    fontFamily: FONT_HEADING,
+                    fontStyle: "italic", fontSize: 26, color: C.cream,
+                    lineHeight: 1.1,
+                  }}>
+                    {totalPacked} <span style={{ color: C.creamMute }}>/</span> {TOTAL_PACKING_ITEMS}
+                    <span style={{ fontSize: 16, color: C.gold, marginLeft: 8 }}>packed</span>
+                  </div>
+                  <div style={{
+                    fontFamily: FONT_SCRIPT,
+                    fontSize: 17, color: C.creamMute, marginTop: 2,
+                  }}>
+                    ~ tap items as you pack them · saves to this device ~
+                  </div>
                 </div>
-              </Card>
-            ))}
+                <button
+                  onClick={resetAllPacked}
+                  style={{
+                    padding: "7px 14px", borderRadius: 999,
+                    border: "1px solid rgba(253,244,227,0.22)",
+                    background: "rgba(253,244,227,0.06)",
+                    color: C.creamMute, fontSize: 12, fontWeight: 600,
+                    cursor: "pointer", fontFamily: FONT_BODY,
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  reset all
+                </button>
+              </div>
+
+              {/* Filter chips */}
+              <div style={{
+                display: "flex", gap: 6, marginTop: 14,
+                overflowX: "auto", scrollbarWidth: "none",
+                WebkitOverflowScrolling: "touch", paddingBottom: 2,
+              }}>
+                {[
+                  { id: "all", label: "all", count: TOTAL_PACKING_ITEMS },
+                  { id: "buy", label: "☐ to buy", count: totalToBuy },
+                  { id: "have", label: "✓ to pack", count: totalToPack },
+                  { id: "packed", label: "★ packed", count: totalPacked },
+                ].map((f) => {
+                  const active = packingFilter === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => setPackingFilter(f.id)}
+                      style={{
+                        padding: "7px 13px", borderRadius: 999,
+                        border: active
+                          ? "1.5px solid rgba(255,197,107,0.7)"
+                          : "1.5px solid rgba(253,244,227,0.18)",
+                        background: active
+                          ? "linear-gradient(135deg, rgba(255,107,157,0.25), rgba(255,197,107,0.25))"
+                          : "rgba(253,244,227,0.06)",
+                        color: active ? C.cream : C.creamDim,
+                        fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        fontFamily: FONT_BODY,
+                        letterSpacing: 0.3,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {f.label}{" "}
+                      <span style={{ opacity: 0.65, marginLeft: 2 }}>{f.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {PACKING_SECTIONS.map((section, ci) => {
+              // Header-only section (visual divider for outfit groups)
+              if (section.header) {
+                if (packingFilter !== "all") return null;
+                return (
+                  <div
+                    key={ci}
+                    style={{
+                      fontFamily: FONT_HEADING,
+                      fontStyle: "italic",
+                      fontSize: 22,
+                      color: C.gold,
+                      textAlign: "center",
+                      margin: "26px 0 6px",
+                      letterSpacing: 0.5,
+                      opacity: 0.95,
+                    }}
+                  >
+                    {section.name}
+                  </div>
+                );
+              }
+
+              const visibleItems = section.items.filter((item) => {
+                const isPacked = !!packed[item.id];
+                if (packingFilter === "all") return true;
+                if (packingFilter === "buy") return !isPacked && !item.owned;
+                if (packingFilter === "have") return !isPacked && item.owned;
+                if (packingFilter === "packed") return isPacked;
+                return true;
+              });
+
+              if (visibleItems.length === 0) return null;
+
+              const sectionPacked = section.items.filter((i) => packed[i.id]).length;
+              const sectionTotal = section.items.length;
+
+              return (
+                <Card key={ci} style={{ marginBottom: 14 }}>
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    alignItems: "baseline", gap: 8, flexWrap: "wrap",
+                  }}>
+                    <SectionLabel>{section.name}</SectionLabel>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, color: C.gold,
+                      padding: "3px 10px", borderRadius: 999,
+                      background: "rgba(255,197,107,0.14)",
+                      letterSpacing: 0.5,
+                      fontFamily: FONT_BODY,
+                      whiteSpace: "nowrap",
+                    }}>
+                      {sectionPacked}/{sectionTotal}
+                    </span>
+                  </div>
+                  <div style={{
+                    marginTop: 12, display: "flex",
+                    flexDirection: "column", gap: 4,
+                  }}>
+                    {visibleItems.map((item) => {
+                      const isPacked = !!packed[item.id];
+                      const isOwned = item.owned;
+                      // 3 visual states:
+                      //   buy:    !isOwned && !isPacked → empty outline box
+                      //   have:    isOwned && !isPacked → turquoise check (already own it)
+                      //   packed:  isPacked             → gold/rose fill + strikethrough
+                      const tagColor = isPacked
+                        ? C.gold
+                        : isOwned
+                        ? C.turquoise
+                        : C.rose;
+                      const tagLabel = isPacked
+                        ? "packed"
+                        : isOwned
+                        ? "have"
+                        : "buy";
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => togglePacked(item.id)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 12,
+                            padding: "10px 12px", borderRadius: 10,
+                            cursor: "pointer",
+                            background: isPacked
+                              ? "rgba(255,197,107,0.14)"
+                              : isOwned
+                              ? "rgba(94,234,212,0.05)"
+                              : "transparent",
+                            borderLeft: `3px solid ${
+                              isPacked
+                                ? C.gold
+                                : isOwned
+                                ? C.turquoise
+                                : "rgba(255,107,157,0.45)"
+                            }`,
+                            transition: "background 0.2s",
+                            minHeight: 44,
+                          }}
+                        >
+                          <div style={{
+                            width: 22, height: 22, borderRadius: 6,
+                            flexShrink: 0,
+                            border: isPacked
+                              ? `2px solid ${C.gold}`
+                              : isOwned
+                              ? `2px solid ${C.turquoise}`
+                              : "2px solid rgba(253,244,227,0.35)",
+                            background: isPacked
+                              ? `linear-gradient(135deg, ${C.gold}, ${C.rose})`
+                              : "transparent",
+                            display: "flex", alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 900,
+                            transition: "all 0.2s",
+                          }}>
+                            {isPacked && (
+                              <span style={{ color: C.plum, fontSize: 13 }}>✓</span>
+                            )}
+                            {!isPacked && isOwned && (
+                              <span style={{ color: C.turquoise, fontSize: 14 }}>✓</span>
+                            )}
+                          </div>
+                          <span style={{
+                            fontSize: 14.5,
+                            color: isPacked ? C.creamMute : C.cream,
+                            fontWeight: 500,
+                            textDecoration: isPacked ? "line-through" : "none",
+                            opacity: isPacked ? 0.65 : 1,
+                            flex: 1,
+                            lineHeight: 1.4,
+                          }}>
+                            {item.text}
+                          </span>
+                          <span style={{
+                            fontSize: 9.5,
+                            fontWeight: 700,
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            color: tagColor,
+                            opacity: 0.75,
+                            flexShrink: 0,
+                            fontFamily: FONT_BODY,
+                          }}>
+                            {tagLabel}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
 
