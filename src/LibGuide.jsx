@@ -190,20 +190,22 @@ const PACKING_V8 = [
     ],
   },
   {
-    name: "🍳 COOKING",
+    name: "🍳 COOKING (FINAL)",
+    slug: "cooking",
     items: [
-      { text: "CAMPINGMOON 13-pc stainless steel cookware set (in cart)", owned: false },
-      { text: "36-piece camping utensil kit (in cart)", owned: false },
-      { text: "Collapsible cutting board / dish washing bowl (in cart)", owned: false },
+      { text: "CAMPINGMOON 13-pc stainless steel cookware set (in cart)", owned: true },
+      { text: "GAIALOOP 36-pc camping utensil kit (in cart)", owned: true },
+      { text: "Collapsible cutting board / dish washing bowl (in cart)", owned: true },
       { text: "Butane camp stove + 2-3 fuel canisters", owned: false },
       { text: "Aluminum foil", owned: false },
       { text: "Saran wrap", owned: false },
       { text: "Ziploc bags (multiple sizes)", owned: false },
       { text: "Trash bags", owned: false },
       { text: "2 lighters", owned: false },
-      { text: "Salt + pepper grinder (small)", owned: false },
       { text: "Biodegradable dish soap", owned: false },
-      { text: "Sponge / scrubby", owned: false },
+      { text: "Sponge (verify if in kit)", owned: false },
+      { text: "Sharp chef knife from home (backup to kit knife)", owned: false },
+      { text: "1-2 Tupperware containers from home (leftovers)", owned: false },
     ],
   },
   {
@@ -398,8 +400,10 @@ const slugify = (s) =>
     .replace(/^-+|-+$/g, "");
 
 // Pre-compute stable ids per item so they survive reloads.
+// Sections can declare an explicit `slug` to keep ids stable across header
+// renames (e.g. "COOKING" → "COOKING (FINAL)").
 const PACKING_SECTIONS = PACKING_V8.map((section) => {
-  const sectionSlug = slugify(section.name);
+  const sectionSlug = section.slug || slugify(section.name);
   return {
     ...section,
     slug: sectionSlug,
