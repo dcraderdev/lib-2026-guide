@@ -315,7 +315,11 @@ const PACKING_V8 = [
       { text: "Sleeveless leather button-up", owned: true },
       { text: "Leather shorts", owned: true },
       { text: "White tank underneath", owned: true },
-      { text: "Footwear (combat boots / chunky black sneakers)", owned: false },
+      {
+        text: "Black athletic shoes (same as Night 2)",
+        owned: true,
+        slug: "footwear-combat-boots-chunky-black-sneakers",
+      },
     ],
   },
   {
@@ -324,8 +328,12 @@ const PACKING_V8 = [
       { text: "Black sequin button-up shirt", owned: true },
       { text: "Diamond/iced chain", owned: true },
       { text: "Grill", owned: true },
-      { text: "Black tailored shorts", owned: false },
-      { text: "Footwear (chunky sneakers / Chelsea boots)", owned: false },
+      { text: "White pants", owned: true, slug: "black-tailored-shorts" },
+      {
+        text: "Black athletic shoes",
+        owned: true,
+        slug: "footwear-chunky-sneakers-chelsea-boots",
+      },
       { text: "Black oval sunglasses (recommended)", owned: false },
       { text: "Silver rings (recommended)", owned: false },
     ],
@@ -420,7 +428,9 @@ const slugify = (s) =>
 
 // Pre-compute stable ids per item so they survive reloads.
 // Sections can declare an explicit `slug` to keep ids stable across header
-// renames (e.g. "COOKING" → "COOKING (FINAL)").
+// renames (e.g. "COOKING" → "COOKING (FINAL)"). Items can declare an
+// explicit `slug` to keep their id stable across text renames (e.g. when
+// an item is replaced by a swapped-in equivalent the user already owns).
 const PACKING_SECTIONS = PACKING_V8.map((section) => {
   const sectionSlug = section.slug || slugify(section.name);
   return {
@@ -428,7 +438,7 @@ const PACKING_SECTIONS = PACKING_V8.map((section) => {
     slug: sectionSlug,
     items: section.items.map((item) => ({
       ...item,
-      id: `${sectionSlug}--${slugify(item.text)}`,
+      id: `${sectionSlug}--${item.slug || slugify(item.text)}`,
     })),
   };
 });
