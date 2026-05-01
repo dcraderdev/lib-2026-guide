@@ -443,11 +443,6 @@ const PACKING_SECTIONS = PACKING_V8.map((section) => {
   };
 });
 
-const TOTAL_PACKING_ITEMS = PACKING_SECTIONS.reduce(
-  (sum, s) => sum + s.items.length,
-  0
-);
-
 // ——— Persistence (localStorage, result-style) ———
 // Storage shape: Record<id, { acquired: boolean, packed: boolean }>.
 // Defaults derived from item.owned, so absence in the map === "unmodified".
@@ -497,6 +492,105 @@ const savePackState = (state) => {
     console.warn("🎒 [lib-packing] failed to save state:", err);
     return { ok: false, error: err };
   }
+};
+
+// ——— User overlay (separate key from pack state) ———
+// Lets the user customize the canonical list without forking the source data:
+//   renames        : { [itemId]: "new text" }            override item text
+//   ownedOverrides : { [itemId]: boolean }               override owned status
+//   deletedIds     : string[]                            hide an item; restorable
+//   customItems    : { id, section, text, owned }[]      user-added items
+const OVERLAY_STORAGE_KEY = "lib-2026-overlay-v1";
+
+const defaultOverlay = () => ({
+  renames: {},
+  ownedOverrides: {},
+  deletedIds: [],
+  customItems: [],
+});
+
+const loadOverlay = () => {
+  try {
+    if (typeof window === "undefined") return { ok: true, data: defaultOverlay() };
+    const raw = window.localStorage.getItem(OVERLAY_STORAGE_KEY);
+    if (!raw) return { ok: true, data: defaultOverlay() };
+    const parsed = JSON.parse(raw) || {};
+    return {
+      ok: true,
+      data: {
+        renames: parsed.renames || {},
+        ownedOverrides: parsed.ownedOverrides || {},
+        deletedIds: Array.isArray(parsed.deletedIds) ? parsed.deletedIds : [],
+        customItems: Array.isArray(parsed.customItems) ? parsed.customItems : [],
+      },
+    };
+  } catch (err) {
+    console.warn("🎒 [lib-overlay] failed to load:", err);
+    return { ok: false, data: defaultOverlay(), error: err };
+  }
+};
+
+const saveOverlay = (overlay) => {
+  try {
+    if (typeof window === "undefined") return { ok: true };
+    window.localStorage.setItem(OVERLAY_STORAGE_KEY, JSON.stringify(overlay));
+    return { ok: true };
+  } catch (err) {
+    console.warn("🎒 [lib-overlay] failed to save:", err);
+    return { ok: false, error: err };
+  }
+};
+
+// Apply the overlay to canonical sections to produce the rendered list.
+// Pure: takes canonical + overlay, returns new sections array.
+const applyOverlay = (canonicalSections, overlay) => {
+  const renames = overlay.renames || {};
+  const ownedOverrides = overlay.ownedOverrides || {};
+  const deletedIds = new Set(overlay.deletedIds || []);
+  const customItems = overlay.customItems || [];
+
+  const sections = canonicalSections.map((section) => ({
+    ...section,
+    items: section.items
+      .filter((item) => !deletedIds.has(item.id))
+      .map((item) => ({
+        ...item,
+        text: renames[item.id] ?? item.text,
+        owned:
+          item.id in ownedOverrides ? ownedOverrides[item.id] : item.owned,
+      })),
+  }));
+
+  // Append custom items into target sections (or create new ones).
+  const sectionByName = new Map(sections.map((s) => [s.name, s]));
+  const newSections = [];
+  for (const c of customItems) {
+    if (deletedIds.has(c.id)) continue;
+    const item = {
+      id: c.id,
+      text: renames[c.id] ?? c.text,
+      owned: c.id in ownedOverrides ? ownedOverrides[c.id] : c.owned,
+      isCustom: true,
+    };
+    const existing = sectionByName.get(c.section);
+    if (existing) {
+      existing.items.push(item);
+    } else {
+      let bucket = newSections.find((s) => s.name === c.section);
+      if (!bucket) {
+        bucket = {
+          name: c.section,
+          slug: slugify(c.section),
+          items: [],
+          isCustom: true,
+        };
+        newSections.push(bucket);
+      }
+      bucket.items.push(item);
+    }
+  }
+
+  return [...sections, ...newSections];
 };
 
 // Slot types drive the color bar on the left of each itinerary row.
@@ -801,9 +895,31 @@ export default function LibGuide() {
   const [packState, setPackState] = useState(() => loadPackState().data);
   const [packingFilter, setPackingFilter] = useState("all");
 
+  // User overlay (renames, owned overrides, hidden ids, custom items).
+  const [overlay, setOverlay] = useState(() => loadOverlay().data);
+
+  // Modal/menu UI state — populated only while a panel is open.
+  const [editingItem, setEditingItem] = useState(null); // { id, text, owned, isCustom }
+  const [showRestore, setShowRestore] = useState(false);
+  const [addCustomDraft, setAddCustomDraft] = useState(null); // { sectionMode, sectionName, newSectionName, text, owned }
+
   useEffect(() => {
     savePackState(packState);
   }, [packState]);
+
+  useEffect(() => {
+    saveOverlay(overlay);
+  }, [overlay]);
+
+  // Effective sections after overlay (renames, hides, customs) applied.
+  const effectiveSections = useMemo(
+    () => applyOverlay(PACKING_SECTIONS, overlay),
+    [overlay]
+  );
+  const allEffectiveItems = useMemo(
+    () => effectiveSections.flatMap((s) => s.items),
+    [effectiveSections]
+  );
 
   // BUY items step BUY → HAVE → PACKED. HAVE items step HAVE → PACKED.
   // Tapping a packed item unpacks it back to HAVE (acquired stays true).
@@ -833,40 +949,122 @@ export default function LibGuide() {
     }
   };
 
+  // ——— Overlay mutators ———
+  const saveItemEdit = (form) => {
+    setOverlay((prev) => {
+      const isCustom = prev.customItems.some((c) => c.id === form.id);
+      if (isCustom) {
+        return {
+          ...prev,
+          customItems: prev.customItems.map((c) =>
+            c.id === form.id
+              ? { ...c, text: form.text, owned: !!form.owned }
+              : c
+          ),
+        };
+      }
+      return {
+        ...prev,
+        renames: { ...prev.renames, [form.id]: form.text },
+        ownedOverrides: { ...prev.ownedOverrides, [form.id]: !!form.owned },
+      };
+    });
+  };
+
+  const deleteItemFromList = (item) => {
+    if (
+      !window.confirm(
+        `Remove "${item.text}"?\n\nYou can restore it later from the manage-list panel (⚙).`
+      )
+    ) {
+      return false;
+    }
+    setOverlay((prev) => ({
+      ...prev,
+      deletedIds: prev.deletedIds.includes(item.id)
+        ? prev.deletedIds
+        : [...prev.deletedIds, item.id],
+    }));
+    return true;
+  };
+
+  const restoreItem = (id) => {
+    setOverlay((prev) => ({
+      ...prev,
+      deletedIds: prev.deletedIds.filter((d) => d !== id),
+    }));
+  };
+
+  const addCustomItem = ({ section, text, owned }) => {
+    const id = `custom--${slugify(section)}--${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    setOverlay((prev) => ({
+      ...prev,
+      customItems: [
+        ...prev.customItems,
+        { id, section, text, owned: !!owned },
+      ],
+    }));
+    return id;
+  };
+
+  // ——— Counters (overlay-aware) ———
+  const totalCount = allEffectiveItems.length;
   const totalPacked = useMemo(
     () =>
-      PACKING_SECTIONS.reduce(
-        (n, s) =>
-          n + s.items.filter((i) => itemState(i, packState).packed).length,
-        0
-      ),
-    [packState]
+      allEffectiveItems.filter((i) => itemState(i, packState).packed).length,
+    [allEffectiveItems, packState]
   );
   const totalToBuy = useMemo(
     () =>
-      PACKING_SECTIONS.reduce((n, s) => {
-        return (
-          n +
-          s.items.filter((i) => {
-            const st = itemState(i, packState);
-            return !st.packed && !st.acquired;
-          }).length
-        );
-      }, 0),
-    [packState]
+      allEffectiveItems.filter((i) => {
+        const st = itemState(i, packState);
+        return !st.packed && !st.acquired;
+      }).length,
+    [allEffectiveItems, packState]
   );
   const totalToPack = useMemo(
     () =>
-      PACKING_SECTIONS.reduce((n, s) => {
-        return (
-          n +
-          s.items.filter((i) => {
-            const st = itemState(i, packState);
-            return !st.packed && st.acquired;
-          }).length
-        );
-      }, 0),
-    [packState]
+      allEffectiveItems.filter((i) => {
+        const st = itemState(i, packState);
+        return !st.packed && st.acquired;
+      }).length,
+    [allEffectiveItems, packState]
+  );
+
+  // Display text for hidden items in the restore panel.
+  // Custom items are looked up by id; canonical items use rename if set, else
+  // the canonical text from PACKING_SECTIONS.
+  const hiddenItems = useMemo(() => {
+    const renames = overlay.renames || {};
+    const customById = new Map(overlay.customItems.map((c) => [c.id, c]));
+    const canonicalItems = PACKING_SECTIONS.flatMap((s) =>
+      s.items.map((i) => ({ ...i, sectionName: s.name }))
+    );
+    const canonicalById = new Map(canonicalItems.map((i) => [i.id, i]));
+    return overlay.deletedIds.map((id) => {
+      const custom = customById.get(id);
+      if (custom) {
+        return {
+          id,
+          text: renames[id] ?? custom.text,
+          sectionName: custom.section,
+          isCustom: true,
+        };
+      }
+      const canon = canonicalById.get(id);
+      return {
+        id,
+        text: renames[id] ?? canon?.text ?? "(unknown item)",
+        sectionName: canon?.sectionName ?? "(unknown section)",
+        isCustom: false,
+      };
+    });
+  }, [overlay]);
+
+  // Section names used for the "add custom" picker.
+  const sectionNamesForPicker = useMemo(
+    () => effectiveSections.map((s) => s.name),
+    [effectiveSections]
   );
 
   const filteredOutfits = useMemo(() => {
@@ -1121,7 +1319,7 @@ export default function LibGuide() {
                     fontStyle: "italic", fontSize: 26, color: C.cream,
                     lineHeight: 1.1,
                   }}>
-                    {totalPacked} <span style={{ color: C.creamMute }}>/</span> {TOTAL_PACKING_ITEMS}
+                    {totalPacked} <span style={{ color: C.creamMute }}>/</span> {totalCount}
                     <span style={{ fontSize: 16, color: C.gold, marginLeft: 8 }}>packed</span>
                   </div>
                   <div style={{
@@ -1131,19 +1329,73 @@ export default function LibGuide() {
                     ~ tap items as you pack them · saves to this device ~
                   </div>
                 </div>
-                <button
-                  onClick={resetAllPacked}
-                  style={{
-                    padding: "7px 14px", borderRadius: 999,
-                    border: "1px solid rgba(253,244,227,0.22)",
-                    background: "rgba(253,244,227,0.06)",
-                    color: C.creamMute, fontSize: 12, fontWeight: 600,
-                    cursor: "pointer", fontFamily: FONT_BODY,
-                    letterSpacing: 0.4,
-                  }}
-                >
-                  reset all
-                </button>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() =>
+                      setAddCustomDraft({
+                        sectionMode: "existing",
+                        sectionName: sectionNamesForPicker[0] || "",
+                        newSectionName: "",
+                        text: "",
+                        owned: false,
+                      })
+                    }
+                    style={{
+                      padding: "7px 13px",
+                      borderRadius: 999,
+                      border: "1px solid rgba(255,197,107,0.55)",
+                      background: "rgba(255,197,107,0.14)",
+                      color: C.gold,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: FONT_BODY,
+                      letterSpacing: 0.4,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    + add item
+                  </button>
+                  <button
+                    onClick={() => setShowRestore(true)}
+                    aria-label="Manage hidden items"
+                    title={`Manage hidden (${overlay.deletedIds.length})`}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      padding: 0,
+                      borderRadius: 999,
+                      border: "1px solid rgba(253,244,227,0.22)",
+                      background: "rgba(253,244,227,0.06)",
+                      color: overlay.deletedIds.length > 0 ? C.gold : C.creamMute,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ⚙
+                  </button>
+                  <button
+                    onClick={resetAllPacked}
+                    style={{
+                      padding: "7px 14px",
+                      borderRadius: 999,
+                      border: "1px solid rgba(253,244,227,0.22)",
+                      background: "rgba(253,244,227,0.06)",
+                      color: C.creamMute,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: FONT_BODY,
+                      letterSpacing: 0.4,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    reset all
+                  </button>
+                </div>
               </div>
 
               {/* Filter chips */}
@@ -1153,7 +1405,7 @@ export default function LibGuide() {
                 WebkitOverflowScrolling: "touch", paddingBottom: 2,
               }}>
                 {[
-                  { id: "all", label: "all", count: TOTAL_PACKING_ITEMS },
+                  { id: "all", label: "all", count: totalCount },
                   { id: "buy", label: "☐ to buy", count: totalToBuy },
                   { id: "have", label: "✓ to pack", count: totalToPack },
                   { id: "packed", label: "★ packed", count: totalPacked },
@@ -1187,7 +1439,7 @@ export default function LibGuide() {
               </div>
             </Card>
 
-            {PACKING_SECTIONS.map((section, ci) => {
+            {effectiveSections.map((section, ci) => {
               // Header-only section (visual divider for outfit groups)
               if (section.header) {
                 if (packingFilter !== "all") return null;
@@ -1338,6 +1590,38 @@ export default function LibGuide() {
                           }}>
                             {tagLabel}
                           </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingItem({
+                                id: item.id,
+                                text: item.text,
+                                owned: !!item.owned,
+                                isCustom: !!item.isCustom,
+                              });
+                            }}
+                            aria-label={`Edit or delete ${item.text}`}
+                            title="Edit or delete"
+                            style={{
+                              flexShrink: 0,
+                              width: 28,
+                              height: 28,
+                              padding: 0,
+                              border: "none",
+                              background: "transparent",
+                              color: "rgba(253,244,227,0.45)",
+                              fontSize: 18,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              lineHeight: 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: 6,
+                            }}
+                          >
+                            ⋮
+                          </button>
                         </div>
                       );
                     })}
@@ -1616,11 +1900,550 @@ export default function LibGuide() {
           lib 2026 · memorial day weekend
         </div>
       </div>
+
+      {/* Edit / Delete modal */}
+      <Modal
+        open={!!editingItem}
+        onClose={() => setEditingItem(null)}
+        title={editingItem?.isCustom ? "Edit custom item" : "Edit item"}
+      >
+        {editingItem && (
+          <ModalForm
+            initial={editingItem}
+            onCancel={() => setEditingItem(null)}
+            onSave={(form) => {
+              saveItemEdit(form);
+              setEditingItem(null);
+            }}
+            onDelete={() => {
+              if (deleteItemFromList(editingItem)) setEditingItem(null);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* Manage hidden items modal */}
+      <Modal
+        open={showRestore}
+        onClose={() => setShowRestore(false)}
+        title="Manage hidden items"
+      >
+        {hiddenItems.length === 0 ? (
+          <p style={{ color: C.creamMute, fontSize: 14, lineHeight: 1.55, margin: 0 }}>
+            No hidden items. When you delete an item from the pack list it shows up here so you can restore it.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {hiddenItems.map((h) => (
+              <div
+                key={h.id}
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "10px 12px",
+                  background: "rgba(253,244,227,0.06)",
+                  border: "1px solid rgba(253,244,227,0.14)",
+                  borderRadius: 10,
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      color: C.cream,
+                      fontWeight: 500,
+                      lineHeight: 1.3,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {h.text}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: C.creamMute,
+                      marginTop: 2,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {h.sectionName}
+                    {h.isCustom && " · custom"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => restoreItem(h.id)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    border: "1px solid rgba(94,234,212,0.55)",
+                    background: "rgba(94,234,212,0.12)",
+                    color: C.turquoise,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: FONT_BODY,
+                    flexShrink: 0,
+                  }}
+                >
+                  restore
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Add custom item modal */}
+      <Modal
+        open={!!addCustomDraft}
+        onClose={() => setAddCustomDraft(null)}
+        title="Add custom item"
+      >
+        {addCustomDraft && (
+          <AddCustomForm
+            draft={addCustomDraft}
+            sectionNames={sectionNamesForPicker}
+            onChange={setAddCustomDraft}
+            onCancel={() => setAddCustomDraft(null)}
+            onSave={() => {
+              const sectionName =
+                addCustomDraft.sectionMode === "new"
+                  ? addCustomDraft.newSectionName.trim()
+                  : addCustomDraft.sectionName;
+              const text = addCustomDraft.text.trim();
+              if (!sectionName || !text) return;
+              addCustomItem({
+                section: sectionName,
+                text,
+                owned: !!addCustomDraft.owned,
+              });
+              setAddCustomDraft(null);
+            }}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
 
 // ——— Components ———
+
+// Bottom-sheet modal with backdrop. Click outside or press Escape to close.
+function Modal({ open, onClose, title, children }) {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        background: "rgba(15,5,20,0.72)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(45,15,55,0.98) 0%, rgba(20,7,28,0.98) 100%)",
+          border: "1px solid rgba(253,244,227,0.18)",
+          borderRadius: "22px 22px 0 0",
+          padding: "20px 18px 28px",
+          width: "100%",
+          maxWidth: 540,
+          color: "#fdf4e3",
+          boxShadow: "0 -10px 40px rgba(0,0,0,0.55)",
+          maxHeight: "85vh",
+          overflowY: "auto",
+          fontFamily: "'Nunito', system-ui, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 8,
+            marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontStyle: "italic",
+              fontSize: 22,
+              color: "#fdf4e3",
+            }}
+          >
+            {title}
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "rgba(253,244,227,0.55)",
+              fontSize: 22,
+              cursor: "pointer",
+              padding: 4,
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Edit form for a single item (used inside the per-item modal).
+function ModalForm({ initial, onCancel, onSave, onDelete }) {
+  const [text, setText] = useState(initial.text);
+  const [owned, setOwned] = useState(!!initial.owned);
+
+  const labelStyle = {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: "rgba(253,244,227,0.55)",
+    marginBottom: 6,
+    display: "block",
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "11px 12px",
+    fontSize: 15,
+    background: "rgba(253,244,227,0.06)",
+    border: "1px solid rgba(253,244,227,0.22)",
+    borderRadius: 10,
+    color: "#fdf4e3",
+    fontFamily: "'Nunito', system-ui, sans-serif",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
+  const toggleBtn = (active, color) => ({
+    flex: 1,
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: active ? `1.5px solid ${color}` : "1.5px solid rgba(253,244,227,0.18)",
+    background: active ? `${color}22` : "rgba(253,244,227,0.04)",
+    color: active ? "#fdf4e3" : "rgba(253,244,227,0.65)",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    letterSpacing: 0.5,
+    fontFamily: "'Nunito', system-ui, sans-serif",
+  });
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div>
+        <label style={labelStyle}>Item name</label>
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          autoFocus
+          style={inputStyle}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Status</label>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => setOwned(false)}
+            style={toggleBtn(!owned, "#ff6b9d")}
+          >
+            ☐ buy
+          </button>
+          <button
+            type="button"
+            onClick={() => setOwned(true)}
+            style={toggleBtn(owned, "#5eead4")}
+          >
+            ✓ have
+          </button>
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            color: "rgba(253,244,227,0.45)",
+            marginTop: 6,
+            lineHeight: 1.4,
+          }}
+        >
+          Status only changes the default — your packed/acquired progress on this item is preserved.
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            flex: 1,
+            padding: "11px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(253,244,227,0.22)",
+            background: "rgba(253,244,227,0.06)",
+            color: "rgba(253,244,227,0.85)",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "'Nunito', system-ui, sans-serif",
+          }}
+        >
+          cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const trimmed = text.trim();
+            if (!trimmed) return;
+            onSave({ id: initial.id, text: trimmed, owned });
+          }}
+          disabled={!text.trim()}
+          style={{
+            flex: 2,
+            padding: "11px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(255,197,107,0.7)",
+            background:
+              "linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,197,107,0.55))",
+            color: "#1a0820",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: text.trim() ? "pointer" : "not-allowed",
+            opacity: text.trim() ? 1 : 0.5,
+            letterSpacing: 0.4,
+            fontFamily: "'Nunito', system-ui, sans-serif",
+          }}
+        >
+          save
+        </button>
+      </div>
+      <div
+        style={{
+          borderTop: "1px solid rgba(253,244,227,0.12)",
+          paddingTop: 14,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onDelete}
+          style={{
+            width: "100%",
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(255,107,157,0.45)",
+            background: "rgba(255,107,157,0.08)",
+            color: "#ff6b9d",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            letterSpacing: 0.5,
+            fontFamily: "'Nunito', system-ui, sans-serif",
+          }}
+        >
+          🗑  delete from list
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Add-custom-item form. Section can be picked from existing sections or
+// created on the fly.
+function AddCustomForm({ draft, sectionNames, onChange, onCancel, onSave }) {
+  const labelStyle = {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: "rgba(253,244,227,0.55)",
+    marginBottom: 6,
+    display: "block",
+  };
+  const inputStyle = {
+    width: "100%",
+    padding: "11px 12px",
+    fontSize: 15,
+    background: "rgba(253,244,227,0.06)",
+    border: "1px solid rgba(253,244,227,0.22)",
+    borderRadius: 10,
+    color: "#fdf4e3",
+    fontFamily: "'Nunito', system-ui, sans-serif",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+  const toggleBtn = (active, color) => ({
+    flex: 1,
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: active ? `1.5px solid ${color}` : "1.5px solid rgba(253,244,227,0.18)",
+    background: active ? `${color}22` : "rgba(253,244,227,0.04)",
+    color: active ? "#fdf4e3" : "rgba(253,244,227,0.65)",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    letterSpacing: 0.5,
+    fontFamily: "'Nunito', system-ui, sans-serif",
+  });
+
+  const isNew = draft.sectionMode === "new";
+  const sectionResolved = isNew
+    ? draft.newSectionName.trim()
+    : draft.sectionName;
+  const canSave = !!sectionResolved && !!draft.text.trim();
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div>
+        <label style={labelStyle}>Section</label>
+        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <button
+            type="button"
+            onClick={() => onChange({ ...draft, sectionMode: "existing" })}
+            style={toggleBtn(!isNew, "#5eead4")}
+          >
+            existing
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange({ ...draft, sectionMode: "new" })}
+            style={toggleBtn(isNew, "#ffc56b")}
+          >
+            new section
+          </button>
+        </div>
+        {isNew ? (
+          <input
+            type="text"
+            placeholder="e.g. 🐶 DOG STUFF"
+            value={draft.newSectionName}
+            onChange={(e) =>
+              onChange({ ...draft, newSectionName: e.target.value })
+            }
+            style={inputStyle}
+          />
+        ) : (
+          <select
+            value={draft.sectionName}
+            onChange={(e) =>
+              onChange({ ...draft, sectionName: e.target.value })
+            }
+            style={{ ...inputStyle, appearance: "auto" }}
+          >
+            {sectionNames.map((s) => (
+              <option key={s} value={s} style={{ background: "#1a0820" }}>
+                {s}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      <div>
+        <label style={labelStyle}>Item name</label>
+        <input
+          type="text"
+          placeholder="What needs to come?"
+          value={draft.text}
+          onChange={(e) => onChange({ ...draft, text: e.target.value })}
+          autoFocus
+          style={inputStyle}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Status</label>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => onChange({ ...draft, owned: false })}
+            style={toggleBtn(!draft.owned, "#ff6b9d")}
+          >
+            ☐ buy
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange({ ...draft, owned: true })}
+            style={toggleBtn(draft.owned, "#5eead4")}
+          >
+            ✓ have
+          </button>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{
+            flex: 1,
+            padding: "11px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(253,244,227,0.22)",
+            background: "rgba(253,244,227,0.06)",
+            color: "rgba(253,244,227,0.85)",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "'Nunito', system-ui, sans-serif",
+          }}
+        >
+          cancel
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={!canSave}
+          style={{
+            flex: 2,
+            padding: "11px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(255,197,107,0.7)",
+            background:
+              "linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,197,107,0.55))",
+            color: "#1a0820",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: canSave ? "pointer" : "not-allowed",
+            opacity: canSave ? 1 : 0.5,
+            letterSpacing: 0.4,
+            fontFamily: "'Nunito', system-ui, sans-serif",
+          }}
+        >
+          add item
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Card({ children, style = {} }) {
   return (
