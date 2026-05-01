@@ -969,6 +969,17 @@ export default function LibGuide() {
         ownedOverrides: { ...prev.ownedOverrides, [form.id]: !!form.owned },
       };
     });
+
+    // If the user flipped the BUY/HAVE toggle, also collapse the pack state
+    // entry so the visual matches. Without this, a prior tap-driven
+    // entry.acquired=true (or entry.packed=true) takes precedence over the
+    // overlay because itemState returns `entry?.acquired ?? item.owned`.
+    if (!!form.owned !== !!form.originalOwned) {
+      setPackState((prev) => ({
+        ...prev,
+        [form.id]: { acquired: !!form.owned, packed: false },
+      }));
+    }
   };
 
   const deleteItemFromList = (item) => {
@@ -1593,10 +1604,14 @@ export default function LibGuide() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Use the effective acquired state (not raw
+                              // item.owned) so the toggle reflects what the
+                              // user actually sees — including tap-driven
+                              // HAVE state.
                               setEditingItem({
                                 id: item.id,
                                 text: item.text,
-                                owned: !!item.owned,
+                                owned: isAcquired,
                                 isCustom: !!item.isCustom,
                               });
                             }}
@@ -2227,7 +2242,12 @@ function ModalForm({ initial, onCancel, onSave, onDelete }) {
           onClick={() => {
             const trimmed = text.trim();
             if (!trimmed) return;
-            onSave({ id: initial.id, text: trimmed, owned });
+            onSave({
+              id: initial.id,
+              text: trimmed,
+              owned,
+              originalOwned: !!initial.owned,
+            });
           }}
           disabled={!text.trim()}
           style={{
